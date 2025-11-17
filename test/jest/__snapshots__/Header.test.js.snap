@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Header Component matches snapshot 1`] = `
+<DocumentFragment>
+  <div
+    style="font-size: 36px; display: flex; justify-content: center; align-items: center;"
+  >
+    <h1>
+      Retrieve Forecast Data for a Given Address
+    </h1>
+  </div>
+</DocumentFragment>
+`;

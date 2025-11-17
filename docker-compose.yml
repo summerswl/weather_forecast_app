@@ -1,0 +1,29 @@
+
+services:
+  db:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: super_admin
+      POSTGRES_PASSWORD: SomeSecretPassword
+      POSTGRES_DATABASE: rails_react_auth
+      PGDATA: /data/postgres
+    volumes:
+       - postgres-db:/data/postgres
+    ports:
+      - "3307:3306"
+  app:
+    build: .
+    command: rails s -p 3001 -b '0.0.0.0'
+    volumes: 
+      - ".:/rails_react_auth"
+    ports: 
+      - "3001:3000"
+    depends_on:
+      - db
+    links:
+      - db 
+
+volumes:
+  postgres-db:
+    driver: local    

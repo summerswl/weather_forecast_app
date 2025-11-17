@@ -1,0 +1,8 @@
+// src/styles/_index.scss
+@forward './_buttons';
+@forward '../components/Header';
+@forward '../components/Home';
+@forward '../components/Login';
+@forward '../components/Dashboard';
+@forward '../components/Registration';
+// Add more components here as you create them

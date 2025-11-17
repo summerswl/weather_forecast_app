@@ -1,0 +1,133 @@
+.dashboard {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  max-width: 100%;           
+  width: 33.333%;            
+  min-width: 380px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .dashboard {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+.dashboard h1 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.inputWithButton {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.addressInput {
+  flex: 1;                    
+  min-width: 250px;
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1.5rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  transition: border-color 0.3s;
+
+  &:focus {
+    outline: none;
+    border-color: #3498db;
+  }
+
+  &:disabled {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+  }
+}
+
+.submitButton {
+  align-self: flex-start;
+}
+
+.resultHeader {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.8rem;
+  color: #2c3e50;
+  line-height: 1.3;
+}
+
+.addressHighlight {
+  font-weight: 600;
+  color: #314542;
+  font-style: italic;
+  margin-left: 0.4rem;
+}
+
+.range {
+  font-size: 1.1rem;
+  color: #555;
+  margin: 0.25rem 0;
+}
+
+.result {
+  margin-top: 2rem;
+  padding: 2rem;
+  border: 2px solid #ecf0f1;
+  border-radius: 12px;
+  background-color: #f9fbfc;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.result p {
+  margin: 0.5rem 0;
+}
+
+.currentWeather {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 1rem 0;
+}
+
+.weatherIcon {
+  width: 80px;
+  height: 80px;
+}
+
+.temperature {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.description {
+  font-style: italic;
+  color: #7f8c8d;
+  margin-top: 0.25rem;
+}
+
+.error {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #fadbd8;
+  color: #c0392b;
+  border-radius: 6px;
+  border-left: 5px solid #e74c3c;
+}
+
+.cacheNote {
+  margin-top: 1rem;
+  color: #27ae60;
+  font-style: italic;
+  font-size: 0.95rem;
+}
