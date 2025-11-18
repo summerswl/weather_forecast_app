@@ -1,3 +1,27 @@
+/**
+ * Dashboard Component
+ * 
+ * The primary weather lookup interface for authenticated users. Provides a responsive,
+ * fully cached, and visually polished experience that displays both current conditions
+ * and a 5-day extended forecast for any U.S. address or ZIP code.
+ *
+ * Features:
+ * - Client-side in-memory caching (30-minute TTL) for instant repeat lookups
+ * - Server-side Rails caching with identical 30-minute expiration
+ * - Live countdown timer showing remaining cache validity 
+ * - Immediate visual feedback distinguishing cached vs fresh data
+ * - Graceful error handling with consistent styling
+ *
+ * Data Flow:
+ * 1. User enters address/ZIP → client checks in-memory cache
+ * 2. Cache hit → instant render with "Retrieved from cache" badge
+ * 3. Cache miss → GET /weather → Rails service performs geocoding + forecast lookup
+ * 4. Response stored in both Rails cache and React client cache with timestamp
+ * 5. Live timer begins counting down from 30:00 to 00:00
+ *
+ * The component is intentionally self-contained and requires only that the parent
+ * (App.js) provide authentication context (loggedInStatus, handleLogin, handleLogout).
+ */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Dashboard.scss';
@@ -110,7 +134,6 @@ export default function Dashboard() {
 
       {forecast && !forecast.error && (
         <div className="result">
-          {/* Current Weather */}
           <h2 className="resultHeader">
             Weather for address:
             <span className="addressHighlight"> {forecast.address}</span>
@@ -125,7 +148,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* 5-Day Extended Forecast */}
           <h3 className="extendedTitle">5-Day Forecast</h3>
           <div className="extendedForecast">
             {forecast.extended_forecast.map((day, index) => (

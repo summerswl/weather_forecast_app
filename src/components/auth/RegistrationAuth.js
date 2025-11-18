@@ -1,3 +1,39 @@
+/**
+ * RegistrationAuth Component
+ *
+ * A class-based form component that handles new user registration. It manages local
+ * form state for email, password, and password confirmation, submits the data to the
+ * backend registration endpoint, and notifies its parent component upon successful
+ * account creation and authentication.
+ *
+ * Key responsibilities:
+ * - Maintain controlled inputs for email, password, and password confirmation
+ * - POST registration data to the Rails backend API at `/registrations`
+ *  [](http://localhost:3001/registrations) with credentials included to establish
+ *   a session cookie immediately after successful signup
+ * - On successful registration (response status 'created'), invoke the parent-provided
+ *   `handleSuccessfulAuth` callback with the full response payload (typically containing
+ *   the newly created user object and logged-in status)
+ * - On error, log the failure to the console (current implementation does not surface
+ *   user-facing error messages)
+ *
+ * Props:
+ * @prop {Function} handleSuccessfulAuth - Required callback passed from the parent
+ *                                         (Registration component). Invoked with the
+ *                                         server response data when registration
+ *                                         and immediate login succeed.
+ *
+ * State:
+ * @state {string} email                  - Email address entered by the user
+ * @state {string} password               - Chosen password
+ * @state {string} password_confirmation  - Password confirmation field
+ * @state {string} registrationErrors      - Currently unused; reserved for future
+ *                                           user-facing error display
+ *
+ * Note: This component assumes a Rails backend using Devise or similar, where the
+ * registration endpoint returns a JSON response with a `status: 'created'` field
+ * on success and automatically logs the user in via session cookie.
+ */
 import React, { Component } from 'react';
 import axios from 'axios';
 import '../Registration.scss'; 
