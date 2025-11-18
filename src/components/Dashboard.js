@@ -115,6 +115,9 @@ export default function Dashboard() {
     <div className="dashboard">
       <form onSubmit={fetchWeather} className="form">
         <div className="inputWithButton">
+          <button type="submit" disabled={loading} className="btn-primary">
+            {loading ? 'Loading...' : 'Get Forecast'}
+          </button>
           <input
             type="text"
             placeholder="Enter address..."
@@ -128,9 +131,6 @@ export default function Dashboard() {
             className="addressInput"
             disabled={loading}
           />
-          <button type="submit" disabled={loading} className="btn-primary">
-            {loading ? 'Loading...' : 'Get Forecast'}
-          </button>
         </div>
         {error && <div className="error">{error}</div>}
       </form>

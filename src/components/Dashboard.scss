@@ -1,17 +1,25 @@
 .dashboard {
   font-family: Georgia, 'Times New Roman', Times, serif;
-  max-width: 100%;           
-  width: 33.333%;            
+  max-width: 800px;        /* ← Reduced from 1200px → exactly ~33% narrower */
+  width: 90%;
   min-width: 380px;
   margin: 2rem auto;
   padding: 0 1rem;
   line-height: 1.6;
 }
 
+/* Optional: slightly tighter on small laptops */
+@media (max-width: 1000px) {
+  .dashboard {
+    max-width: 720px;
+  }
+}
+
+/* Mobile — still full width */
 @media (max-width: 900px) {
   .dashboard {
     width: 100%;
-    min-width: unset;
+    padding: 0 0.5rem;
   }
 }
 
@@ -80,12 +88,26 @@
 }
 
 .result {
-  margin-top: 2rem;
-  padding: 2rem;
-  border: 2px solid #ecf0f1;
-  border-radius: 12px;
-  background-color: #f9fbfc;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  margin-top: 3rem;
+  padding: 2.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+
+  /* Full width inside the dashboard */
+  width: 100%;
+  box-sizing: border-box;
+
+  > * + * {
+    margin-top: 2.8rem;
+  }
+}
+
+// Optional: extra spacing after header and before extended forecast
+.resultHeader {
+  margin-bottom: 1rem;
 }
 
 .result p {
@@ -93,10 +115,8 @@
 }
 
 .currentWeather {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin: 1rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed #e0e6ed;
 }
 
 .weatherIcon {
@@ -133,32 +153,60 @@
 }
 
 .extendedTitle {
-  margin: 2.5rem 0 1.5rem 0;
-  font-size: 1.6rem;
-  color: #2c3e50;
+  margin: 3rem 0 1.8rem 0;   // Big visual break before 5-day forecast
+  font-size: 1.8rem;
+  position: relative;
+
+  // Optional fancy underline
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -0.8rem;
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #3498db, #2980b9);
+    transform: translateX(-50%);
+    border-radius: 2px;
+  }
+}
+
+.cacheInfo {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eef2f6;
   text-align: center;
-  font-weight: 600;
 }
 
 .extendedForecast {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1.2rem;
-  margin-top: 1rem;
+  grid-template-columns: repeat(5, 1fr);   /* ← Forces 5 cards in a row */
+  gap: 1.8rem;
+  margin: 0;
+
+  /* On smaller screens: wrap naturally */
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .forecastDay {
   background: white;
-  border-radius: 16px;
-  padding: 1.2rem 0.8rem;
+  border-radius: 20px;
+  padding: 1.5rem 1rem;
   text-align: center;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
   border: 1px solid #eef2f6;
-  transition: transform 0.2s ease;
+  transition: all 0.3s ease;
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.15);
   }
 }
 
