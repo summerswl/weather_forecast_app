@@ -51,45 +51,36 @@ export default class LoginAuth extends Component {
 
     return (
       <div>
-        <form onSubmit={this.handleSubmit} autoComplete="off">
+        <form onSubmit={this.handleSubmit} autoComplete="on">
 
           <input type="text" style={{ display: 'none' }} />
           <input type="password" style={{ display: 'none' }} />
 
           <input
             type="email"
-            name="email"
+            name="email"                  
             placeholder="Email"
             value={this.state.email}
             onChange={this.handleChange}
             className="loginInput"
-            autoComplete="off"
-            readOnly
-            onFocus={(e) => e.target.removeAttribute('readOnly')}   
+            autoComplete="username"       
             required
           />
 
           <input
             type="password"
-            name="password"
+            name="password"               
             placeholder="Password"
             value={this.state.password}
             onChange={this.handleChange}
             className="loginInput"
-            autoComplete="new-password"
-            readOnly
-            onFocus={(e) => e.target.removeAttribute('readOnly')}
+            autoComplete="current-password"  
             required
           />
-          
+
           <button type="submit" className="btn-primary">
             Login
           </button>
-          
-          {loginErrors && (
-            <div className="error">{loginErrors}</div>
-          )}
-
         </form>
       </div>
     );

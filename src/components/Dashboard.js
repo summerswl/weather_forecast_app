@@ -110,34 +110,44 @@ export default function Dashboard() {
 
       {forecast && !forecast.error && (
         <div className="result">
+          {/* Current Weather */}
           <h2 className="resultHeader">
             Weather for address:
             <span className="addressHighlight"> {forecast.address}</span>
           </h2>
 
           <div className="currentWeather">
-            <img
-              src={`https://openweathermap.org/img/wn/${forecast.icon}.png`}
-              alt="Weather icon"
-              className="weatherIcon"
-            />
+            <img src={`https://openweathermap.org/img/wn/${forecast.icon}@2x.png`} alt="Weather icon" className="weatherIcon" />
             <div>
               <div className="temperature">{forecast.current_temp}°F</div>
-              <div className="range">{forecast.low}°F – {forecast.high}°F</div>
+              <div className="range">{forecast.low_today}°F – {forecast.high_today}°F</div>
               <div className="description">{forecast.description}</div>
             </div>
           </div>
 
+          {/* 5-Day Extended Forecast */}
+          <h3 className="extendedTitle">5-Day Forecast</h3>
+          <div className="extendedForecast">
+            {forecast.extended_forecast.map((day, index) => (
+              <div key={index} className="forecastDay">
+                <div className="dayName">{day.date}</div>
+                <div className="dayDate">{day.short_date}</div>
+                <img 
+                  src={`https://openweathermap.org/img/wn/${day.icon}.png`} 
+                  alt={day.description}
+                  className="dayIcon"
+                />
+                <div className="dayTemp">{day.temp}°</div>
+                <div className="dayRange">{day.low}° – {day.high}°</div>
+                <div className="dayDesc">{day.description}</div>
+              </div>
+            ))}
+          </div>
+
           <div className="cacheInfo">
-            {forecast.from_cache ? (
-              <p className="cacheNote">
-                Retrieved from cache • {formatTimeLeft(timeLeft)}
-              </p>
-            ) : (
-              <p className="cacheNote">
-                Data cached for thirty minutes • {formatTimeLeft(timeLeft)}
-              </p>
-            )}
+            <p className="cacheNote">
+              {forecast.from_cache ? 'Retrieved from cache' : 'Fresh data'} • {formatTimeLeft(timeLeft)}
+            </p>
           </div>
         </div>
       )}

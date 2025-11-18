@@ -131,3 +131,69 @@
   font-style: italic;
   font-size: 0.95rem;
 }
+
+.extendedTitle {
+  margin: 2.5rem 0 1.5rem 0;
+  font-size: 1.6rem;
+  color: #2c3e50;
+  text-align: center;
+  font-weight: 600;
+}
+
+.extendedForecast {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+.forecastDay {
+  background: white;
+  border-radius: 16px;
+  padding: 1.2rem 0.8rem;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  border: 1px solid #eef2f6;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+  }
+}
+
+.dayName {
+  font-weight: 700;
+  color: #314542;
+  font-size: 1.1rem;
+}
+
+.dayDate {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  margin-bottom: 0.5rem;
+}
+
+.dayIcon {
+  width: 60px;
+  height: 60px;
+  margin: 0.5rem auto;
+}
+
+.dayTemp {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.dayRange {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0.3rem 0;
+}
+
+.dayDesc {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  font-style: italic;
+}

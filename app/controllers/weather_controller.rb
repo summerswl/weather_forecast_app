@@ -1,17 +1,19 @@
 # app/controllers/weather_controller.rb
 class WeatherController < ApplicationController
   def show
-    address = params[:address].to_s.strip
-    if address.blank?
-      return render json: { error: 'Address is required' }, status: :bad_request
+    if params[:address].blank?
+      render json: { error: 'Please enter an address' }, status: :bad_request
+      return
     end
 
-    zip = GeocodeService.zip_from_address(address)
-    if zip.nil?
-      return render json: { error: 'Could not determine ZIP code' }, status: :unprocessable_entity
-    end
+    result = ForecastService.for_address(params[:address])
 
-    forecast = ForecastService.for_zip(zip)
-    render json: forecast.merge(address: address, resolved_zip: zip)
+    # Check for error using ANY key type (symbol or string)
+    if result.is_a?(Hash) && (result[:error].present? || result['error'].present?)
+      error_message = result[:error] || result['error']
+      render json: { error: error_message }, status: :unprocessable_entity
+    else
+      render json: result, status: :ok
+    end
   end
 end
