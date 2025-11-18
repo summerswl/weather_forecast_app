@@ -1,4 +1,24 @@
-# app/controllers/weather_controller.rb
+#
+# WeatherController
+#
+# Purpose:
+#   Provides a single public endpoint (`GET /weather`) that accepts an address
+#   parameter and returns current weather and forecast data for that location.
+#
+# Endpoint:
+#   GET /weather?address=<location>
+#
+# Request Parameters:
+#   address [String] - Required. The location (city, postcode, street address, etc.)
+#                      for which weather data is requested.
+#
+# Implementation notes:
+#   - Delegates all geocoding and weather retrieval logic to ForecastService.for_address
+#   - Gracefully handles both symbol-keyed and string-keyed error hashes returned
+#     by the service layer for maximum compatibility
+#   - Does not require authentication; intended to be publicly accessible
+#   - Designed to be consumed by the React frontend (Dashboard component)
+
 class WeatherController < ApplicationController
   def show
     if params[:address].blank?

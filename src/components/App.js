@@ -44,6 +44,7 @@
  * This component is the single source of truth for authentication state in the
  * frontend application.
  */
+
 import React, { Component } from 'react';
 import { Switch, Route } from 'react-router-dom';
 import axios from 'axios';

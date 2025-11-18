@@ -5,6 +5,6 @@ Geocoder.configure(
   timeout: 10,
   nominatim: {
     email: "you@example.com",  # Required by Nominatim policy
-    user_agent: "RailsReactAuth App[](https://github.com/yourname/rails_react_auth)"
+    user_agent: "WeatherForecastApp App[](https://github.com/yourname/weather_forecast_app)"
   }
 )

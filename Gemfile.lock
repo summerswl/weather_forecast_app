@@ -161,6 +161,7 @@ GEM
     nio4r (2.7.5)
     nokogiri (1.18.10-x86_64-linux-gnu)
       racc (~> 1.4)
+    pg (1.6.2-x86_64-linux)
     pp (0.6.3)
       prettyprint
     prettyprint (0.2.0)
@@ -306,6 +307,7 @@ DEPENDENCIES
   httparty
   importmap-rails
   jbuilder
+  pg (~> 1.5)
   puma (~> 6.0)
   rack-cors
   rails (~> 7.1, >= 7.1.5.2)

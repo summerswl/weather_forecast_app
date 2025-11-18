@@ -22,6 +22,7 @@
  * The component is intentionally self-contained and requires only that the parent
  * (App.js) provide authentication context (loggedInStatus, handleLogin, handleLogout).
  */
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Dashboard.scss';

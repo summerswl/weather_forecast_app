@@ -18,6 +18,7 @@
  * @param {Function} props.handleLogout - Callback to log the user out and clear session
  * @param {Object} props.history - React Router history object (injected via withRouter)
  */
+
 import React, { Component } from 'react';
 import { withRouter } from 'react-router';
 import './Home.scss';

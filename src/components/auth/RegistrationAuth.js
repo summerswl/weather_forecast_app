@@ -34,6 +34,7 @@
  * registration endpoint returns a JSON response with a `status: 'created'` field
  * on success and automatically logs the user in via session cookie.
  */
+
 import React, { Component } from 'react';
 import axios from 'axios';
 import '../Registration.scss'; 

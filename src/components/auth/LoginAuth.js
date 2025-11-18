@@ -31,6 +31,7 @@
  * session authentication. It assumes the server responds with a JSON payload
  * containing at least a `status` field ('created' on success).
  */
+
 import React, { Component } from 'react';
 import axios from 'axios';
 import '../Login.scss';

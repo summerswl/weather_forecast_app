@@ -1,29 +1,63 @@
 
 services:
   db:
-    container_name: postgres
-    image: postgres:latest
+    image: postgres:16-alpine
     environment:
       POSTGRES_USER: super_admin
       POSTGRES_PASSWORD: SomeSecretPassword
-      POSTGRES_DATABASE: rails_react_auth
-      PGDATA: /data/postgres
+      POSTGRES_DB: weather_forecast_app
     volumes:
-       - postgres-db:/data/postgres
+      - postgres-db:/var/lib/postgresql/data
     ports:
-      - "3307:3306"
-  app:
-    build: .
-    command: rails s -p 3001 -b '0.0.0.0'
-    volumes: 
-      - ".:/rails_react_auth"
-    ports: 
-      - "3001:3000"
-    depends_on:
-      - db
-    links:
-      - db 
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U super_admin -d weather_forecast_app"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
+  rails:
+    build: .
+    entrypoint: /weather_forecast_app/bin/docker-entrypoint   
+    command: rails server -b 0.0.0.0 -p 3001                
+    volumes:
+      - .:/weather_forecast_app
+      - bundle_data:/usr/local/bundle
+    ports:
+      - "3001:3001"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_HOST: db
+      DATABASE_USERNAME: super_admin
+      DATABASE_PASSWORD: SomeSecretPassword
+      DATABASE_NAME: weather_forecast_app
+      RAILS_ENV: development
+    healthcheck:                               
+      test: ["CMD", "curl", "-f", "http://localhost:3001"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  react:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WDS_SOCKET_PORT=0
+      - HOST=0.0.0.0
+      - RAILS_HOST=rails
+      - RAILS_PORT=3001
+    depends_on:
+      - rails
+    command: sh -c "npm ci --silent && npm run start:docker"
 volumes:
   postgres-db:
-    driver: local    
+  bundle_data:
+  node_modules:

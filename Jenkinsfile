@@ -48,9 +48,9 @@ pipeline {
                         
                         sh '''
                             ssh ${ec2_user}@${ec2_ip}
-                            mkdir -p /home/ubuntu/rails_react_auth && cd /home/ubuntu/rails_react_auth
-                            git clone https://github.com/summerswl/rails_react_auth.git || (cd rails_react_auth)
-                            cd rails_react_auth
+                            mkdir -p /home/ubuntu/weather_forecast_app && cd /home/ubuntu/weather_forecast_app
+                            git clone https://github.com/summerswl/weather_forecast_app.git || (cd weather_forecast_app)
+                            cd weather_forecast_app
                             npm install
                             npm run dev                         
                         '''

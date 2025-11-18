@@ -20,6 +20,7 @@
  * @prop {Object}   history          - React Router history object (injected by withRouter or
  *                                    Route component) used for programmatic navigation.
  */
+
 import React, { Component } from 'react';
 import RegistrationAuth from './auth/RegistrationAuth';
 import './Registration.scss';   
