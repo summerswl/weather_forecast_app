@@ -1,6 +1,6 @@
 # README
 
-These are the current requirements to run this app in a local workspace. The app repo is located at https://github.com/summerswl under the name rails_react_auth. It has public viewing enabled and you should be able to fork off a new repo and run this in your local environment.
+These are the current requirements to run this app in a local workspace. The app repo is located at https://github.com/summerswl/weather_forecast_app under the name weather_forecast_app. It has public viewing enabled and you should be able to fork off a new repo and run this in your local environment.
 
 Setup required for app to load and run on local environment:
 
