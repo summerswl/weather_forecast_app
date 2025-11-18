@@ -11,16 +11,14 @@
  * - Live countdown timer showing remaining cache validity 
  * - Immediate visual feedback distinguishing cached vs fresh data
  * - Graceful error handling with consistent styling
+ * - Now shows the exact user-entered address in the results header
  *
  * Data Flow:
  * 1. User enters address/ZIP → client checks in-memory cache
  * 2. Cache hit → instant render with "Retrieved from cache" badge
- * 3. Cache miss → GET /weather → Rails service performs geocoding + forecast lookup
- * 4. Response stored in both Rails cache and React client cache with timestamp
- * 5. Live timer begins counting down from 30:00 to 00:00
- *
- * The component is intentionally self-contained and requires only that the parent
- * (App.js) provide authentication context (loggedInStatus, handleLogin, handleLogout).
+ * 3. Cache miss → GET /weather → Rails service performs lookup
+ * 4. Response stored in both server-side and in React client cache
+ * 5. Live timer counts down from 30:00 to 00:00
  */
 
 import React, { useState, useEffect } from 'react';
@@ -30,17 +28,21 @@ import './Dashboard.scss';
 const API_URL = '/weather';
 const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in ms
 
+// Helper: detect if input is exactly a 5-digit ZIP code (with optional whitespace)
+const isZipOnly = (input) => /^\s*\d{5}\s*$/.test(input);
+
 export default function Dashboard() {
   const [address, setAddress] = useState('');
+  const [userInput, setUserInput] = useState('');           // Exact text user typed
+  const [displayAddress, setDisplayAddress] = useState(''); // What we show in header
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [timeLeft, setTimeLeft] = useState(null); 
+  const [timeLeft, setTimeLeft] = useState(null);
 
-  // Client-side cache: address → { data, timestamp }
   const [clientCache, setClientCache] = useState({});
 
-  // Countdown timer — updates every second
+  // Countdown timer
   useEffect(() => {
     if (!forecast?.cached_at) {
       setTimeLeft(null);
@@ -57,14 +59,12 @@ export default function Dashboard() {
 
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
-
     return () => clearInterval(interval);
   }, [forecast]);
 
   const formatTimeLeft = (seconds) => {
     if (seconds === null) return '';
     if (seconds <= 0) return 'Cache expired';
-
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `Expires in ${mins}m ${secs.toString().padStart(2, '0')}s`;
@@ -74,14 +74,17 @@ export default function Dashboard() {
     e.preventDefault();
     const trimmed = address.trim();
     if (!trimmed) {
-      setError('Please enter an address');
+      setError('Please enter an address or ZIP code');
       return;
     }
 
-    // Check client cache first
+    setUserInput(trimmed);
+
+    // Client cache check
     const cached = clientCache[trimmed];
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
       setForecast({ ...cached.data, from_cache: true });
+      updateDisplayAddress(trimmed, cached.data);
       setError('');
       return;
     }
@@ -94,20 +97,35 @@ export default function Dashboard() {
       const res = await axios.get(API_URL, { params: { address: trimmed } });
       const data = {
         ...res.data,
-        cached_at: new Date().toISOString() 
+        cached_at: new Date().toISOString(),
       };
 
-      // Save to client cache
+      // Update client cache
       setClientCache(prev => ({
         ...prev,
         [trimmed]: { data, timestamp: Date.now() }
       }));
 
       setForecast(data);
+      updateDisplayAddress(trimmed, data);
     } catch (err) {
       setError(err.response?.data?.error || 'Unable to fetch forecast');
+      setDisplayAddress('');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Smart display logic
+  const updateDisplayAddress = (originalInput, forecastData) => {
+    if (isZipOnly(originalInput) && forecastData?.address) {
+      // User typed only ZIP → show full resolved location with ZIP
+      const zipMatch = originalInput.match(/\d{5}/);
+      const zip = zipMatch ? zipMatch[0] : '';
+      setDisplayAddress(`${forecastData.address} ${zip}`);
+    } else {
+      // Any other input → show exactly what they typed
+      setDisplayAddress(originalInput);
     }
   };
 
@@ -120,13 +138,13 @@ export default function Dashboard() {
           </button>
           <input
             type="text"
-            placeholder="Enter address..."
+            placeholder="Enter address, city, or ZIP code..."
             value={address}
             onChange={(e) => {
               setAddress(e.target.value);
               setError('');
-              setForecast(null);       
-              setTimeLeft(null);       
+              setForecast(null);
+              setTimeLeft(null);
             }}
             className="addressInput"
             disabled={loading}
@@ -138,12 +156,16 @@ export default function Dashboard() {
       {forecast && !forecast.error && (
         <div className="result">
           <h2 className="resultHeader">
-            Weather for address:
-            <span className="addressHighlight"> {forecast.address}</span>
+            Weather for:
+            <span className="addressHighlight"> {displayAddress}</span>
           </h2>
 
           <div className="currentWeather">
-            <img src={`https://openweathermap.org/img/wn/${forecast.icon}@2x.png`} alt="Weather icon" className="weatherIcon" />
+            <img
+              src={`https://openweathermap.org/img/wn/${forecast.icon}@2x.png`}
+              alt="Weather icon"
+              className="weatherIcon"
+            />
             <div>
               <div className="temperature">{forecast.current_temp}°F</div>
               <div className="range">{forecast.low_today}°F – {forecast.high_today}°F</div>
@@ -157,8 +179,8 @@ export default function Dashboard() {
               <div key={index} className="forecastDay">
                 <div className="dayName">{day.date}</div>
                 <div className="dayDate">{day.short_date}</div>
-                <img 
-                  src={`https://openweathermap.org/img/wn/${day.icon}.png`} 
+                <img
+                  src={`https://openweathermap.org/img/wn/${day.icon}.png`}
                   alt={day.description}
                   className="dayIcon"
                 />
