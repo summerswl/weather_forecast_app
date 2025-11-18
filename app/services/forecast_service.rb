@@ -1,6 +1,5 @@
-
-require 'digest/md5'
-
+# app/services/forecast_service.rb
+#
 # == ForecastService
 #
 # A service class responsible for retrieving current weather conditions and a 5-day forecast
@@ -56,11 +55,6 @@ require 'digest/md5'
 #
 # @see https://openweathermap.org/api OpenWeatherMap API documentation
 
-class ForecastService
-  include HTTParty
-  base_uri 'https://api.openweathermap.org/data/2.5'
-
-  # (rest of the original code remains unchanged)
 require 'digest/md5'
 
 class ForecastService
@@ -76,7 +70,7 @@ class ForecastService
 
     zip = zip_match
 
-    # Use original input as cache key 
+    # Use ZIP as cache key
     cache_key = "forecast_zip_#{zip}"
     cached = Rails.cache.read(cache_key)
 
