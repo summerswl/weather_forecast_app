@@ -122,6 +122,8 @@ export default function Dashboard() {
             onChange={(e) => {
               setAddress(e.target.value);
               setError('');
+              setForecast(null);       
+              setTimeLeft(null);       
             }}
             className="addressInput"
             disabled={loading}

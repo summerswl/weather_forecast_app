@@ -2,12 +2,25 @@
 
 exports[`Header Component matches snapshot 1`] = `
 <DocumentFragment>
-  <div
-    style="font-size: 36px; display: flex; justify-content: center; align-items: center;"
+  <header
+    class="header"
   >
-    <h1>
-      Retrieve Forecast Data for a Given Address
-    </h1>
-  </div>
+    <div
+      class="headerContent"
+    >
+      <h1>
+        Weather Forecast App
+      </h1>
+      <nav
+        class="authNav"
+      >
+        <button
+          class="btn-primary headerBtn"
+        >
+          Logout
+        </button>
+      </nav>
+    </div>
+  </header>
 </DocumentFragment>
 `;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { MemoryRouter } from 'react-router-dom';
 import Header from '../../src/components/Header';
 
 // Behaviors covered:
@@ -12,41 +13,41 @@ import Header from '../../src/components/Header';
 
 describe('Header Component', () => {
   it('renders the heading text', () => {
-    render(<Header />);
+    render(
+      <MemoryRouter>
+        <Header />
+      </MemoryRouter>
+    );
     expect(
-      screen.getByRole('heading', { name: 'Retrieve Forecast Data for a Given Address' })
+      screen.getByRole('heading', { name: 'Weather Forecast App' })
     ).toBeInTheDocument();
   });
 
-  it('applies inline styles for layout and font size', () => {
-    const { container } = render(<Header />);
-    const wrapper = container.firstChild;
-    expect(wrapper).toHaveStyle({
-      fontSize: '36px',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-    });
-  });
-
   it('wraps heading inside a container div', () => {
-    const { container } = render(<Header />);
+    const { container } = render(<MemoryRouter>
+                                  <Header />
+                                </MemoryRouter>);
     const wrapper = container.querySelector('div');
-    const heading = screen.getByRole('heading', { name: /Retrieve Forecast/i });
+    const heading = screen.getByRole('heading', { name: /Weather Forecast App/i });
 
     expect(wrapper).toContainElement(heading);
   });
 
   it('matches snapshot', () => {
-    const { asFragment } = render(<Header />);
+    const { asFragment } = render(<MemoryRouter>
+                                    <Header />
+                                  </MemoryRouter>);
     expect(asFragment()).toMatchSnapshot();
   });
 
   it('has only the expected heading text content', () => {
-    render(<Header />);
-    const allText = screen.getByText('Retrieve Forecast Data for a Given Address');
+    render(
+      <MemoryRouter>
+        <Header />
+      </MemoryRouter>
+    );
+    const allText = screen.getByText('Weather Forecast App');
     expect(allText).toBeInTheDocument();
-    // Ensure no duplicate headings with the same text
-    expect(screen.getAllByRole('heading', { name: /Retrieve Forecast Data for a Given Address/ })).toHaveLength(1);
+    expect(screen.getAllByRole('heading', { name: /Weather Forecast App/ })).toHaveLength(1);
   });
 });

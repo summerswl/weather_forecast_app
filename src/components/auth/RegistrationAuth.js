@@ -74,9 +74,14 @@ export default class RegistrationAuth extends Component {
 
   render() {
     return (
-      <form onSubmit={this.handleSubmit} className="authForm">
-        <input type="text" style={{ display: 'none' }} />
-        <input type="password" style={{ display: 'none' }} />
+      <form onSubmit={this.handleSubmit} className="authForm" autoComplete="on">
+        <input
+          type="text"
+          autoComplete="username email"
+          style={{ position: 'absolute', left: '-9999px' }}
+          readOnly
+          tabIndex="-1"
+        />
 
         <input
           type="email"
@@ -85,7 +90,7 @@ export default class RegistrationAuth extends Component {
           value={this.state.email}
           onChange={this.handleChange}
           className="authInput"
-          autoComplete="off"                
+          autoComplete="email"
           required
         />
 
@@ -96,7 +101,7 @@ export default class RegistrationAuth extends Component {
           value={this.state.password}
           onChange={this.handleChange}
           className="authInput"
-          autoComplete="new-password"        
+          autoComplete="new-password"
           required
         />
 
@@ -107,7 +112,7 @@ export default class RegistrationAuth extends Component {
           value={this.state.password_confirmation}
           onChange={this.handleChange}
           className="authInput"
-          autoComplete="new-password"        
+          autoComplete="new-password"
           required
         />
 

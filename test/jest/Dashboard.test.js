@@ -9,148 +9,210 @@ const mockedAxios = axios;
 describe('Dashboard Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mock Date.now() for consistent cache timing in tests if needed
+    jest.spyOn(Date, 'now').mockImplementation(() => new Date('2025-04-01T12:00:00Z').getTime());
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders initial state correctly', () => {
     render(<Dashboard />);
     
-    expect(screen.getByText('Weather Forecast')).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/Enter address/)).toBeInTheDocument();
-    expect(screen.getByText('Get Forecast')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Get Forecast' })).toBeInTheDocument();
   });
 
   it('updates address input value', () => {
     render(<Dashboard />);
     const input = screen.getByPlaceholderText(/Enter address/);
     
-    fireEvent.change(input, { target: { value: 'New York' } });
-    expect(input.value).toBe('New York');
+    fireEvent.change(input, { target: { value: '90210' } });
+    expect(input).toHaveValue('90210');
   });
 
-  it('does not submit with empty address', async () => {
-    render(<Dashboard />);
-    const button = screen.getByRole('button', { name: 'Get Forecast' });
-    
-    fireEvent.click(button);
-    expect(mockedAxios.get).not.toHaveBeenCalled();
-  });
+  it('shows error when submitting empty address', async () => {
+  render(<Dashboard />);
+
+  const input = screen.getByPlaceholderText(/Enter address/i);
+  const submitButton = screen.getByRole('button', { name: /Get Forecast/i });
+
+  expect(input).toHaveValue('');
+
+  fireEvent.click(submitButton);
+
+  expect(await screen.findByText('Please enter an address')).toBeInTheDocument();
+
+  expect(mockedAxios.get).not.toHaveBeenCalled();
+});
 
   it('shows loading state during API call', async () => {
-    mockedAxios.get.mockImplementation(() => new Promise(() => {}));
+    mockedAxios.get.mockImplementation(() => new Promise(() => {})); // never resolves
     render(<Dashboard />);
     
     const input = screen.getByPlaceholderText(/Enter address/);
     const button = screen.getByRole('button', { name: 'Get Forecast' });
     
-    fireEvent.change(input, { target: { value: 'New York' } });
+    fireEvent.change(input, { target: { value: 'Miami, FL' } });
     fireEvent.click(button);
     
-    await waitFor(() => {
-      expect(screen.getByText('Loading...')).toBeInTheDocument();
-      expect(input).toBeDisabled();
-      expect(button).toBeDisabled();
-    });
+    expect(button).toBeDisabled();
+    expect(button).toHaveTextContent('Loading...');
+    expect(input).toBeDisabled();
   });
 
   it('displays forecast data on successful API call', async () => {
-    const mockForecast = {
-      address: '123 Main St, New York, NY',
-      resolved_zip: '10001',
-      current_temp: 72,
-      low: 65,
-      high: 78,
-      description: 'Sunny',
-      icon: '01d',
-      from_cache: false
-    };
+  const mockResponse = {
+    address: 'Beverly Hills, CA',
+    current_temp: 78,
+    low_today: 62,
+    high_today: 84,
+    description: 'Clear sky',
+    icon: '01d',
+    cached_at: new Date().toISOString(),
+    extended_forecast: [
+      {
+        date: 'Monday',
+        short_date: 'Apr 1',
+        icon: '02d',
+        temp: 81,
+        low: 63,
+        high: 85,
+        description: 'Few clouds',
+      },
+    ],
+  };
 
-    mockedAxios.get.mockResolvedValue({ data: mockForecast });
-    render(<Dashboard />);
-    
-    const input = screen.getByPlaceholderText(/Enter address/);
-    fireEvent.change(input, { target: { value: 'New York' } });
-    fireEvent.submit(input.closest('form'));
-    
-    await waitFor(() => {
-      expect(screen.getByText('123 Main St, New York, NY')).toBeInTheDocument();
-      expect(screen.getByText('10001')).toBeInTheDocument();
-      expect(screen.getByText('72°F')).toBeInTheDocument();
-      expect(screen.getByText('65°F – 78°F')).toBeInTheDocument();
-      expect(screen.getByText('Sunny')).toBeInTheDocument();
-      expect(screen.getByAltText('Weather icon')).toHaveAttribute('src', expect.stringContaining('01d'));
+  mockedAxios.get.mockResolvedValue({ data: mockResponse });
+
+  render(<Dashboard />);
+
+  const input = screen.getByPlaceholderText(/Enter address/i);
+  const submitButton = screen.getByRole('button', { name: /Get Forecast/i });
+
+  fireEvent.change(input, { target: { value: '90210' } });
+  fireEvent.click(submitButton);
+
+  await waitFor(() => {
+    expect(screen.getByText('Beverly Hills, CA')).toBeInTheDocument();
+    expect(screen.getByText('78°F')).toBeInTheDocument();
+    expect(screen.getByText('62°F – 84°F')).toBeInTheDocument();
+    expect(screen.getByText('Clear sky')).toBeInTheDocument();
+
+    expect(screen.getByAltText('Weather icon')).toHaveAttribute(
+      'src',
+      expect.stringContaining('01d@2x.png')
+    );
+
+    expect(screen.getByText(/Fresh data/i)).toBeInTheDocument();
+    expect(screen.getByText(/Expires in/)).toBeInTheDocument();
+  });
+
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+    expect(mockedAxios.get).toHaveBeenCalledWith('/weather', {
+      params: { address: '90210' },
     });
   });
 
-  it('displays error on failed API call', async () => {
-    mockedAxios.get.mockRejectedValue({ response: { data: { error: 'Address not found' } } });
-    render(<Dashboard />);
-    
-    const input = screen.getByPlaceholderText(/Enter address/);
-    fireEvent.change(input, { target: { value: 'Invalid' } });
-    fireEvent.submit(input.closest('form'));
-    
-    await waitFor(() => {
-      expect(screen.getByText('Error:')).toBeInTheDocument();
-      expect(screen.getByText('Address not found')).toBeInTheDocument();
+  it('displays error message from API', async () => {
+    mockedAxios.get.mockRejectedValue({
+      response: { data: { error: 'Unable to geocode address' } },
     });
+
+    render(<Dashboard />);
+
+    const input = screen.getByPlaceholderText(/Enter address/i);
+    const submitButton = screen.getByRole('button', { name: /Get Forecast/i });
+
+    fireEvent.change(input, { target: { value: 'xyz' } });
+    fireEvent.click(submitButton);
+
+    expect(await screen.findByText('Unable to geocode address')).toBeInTheDocument();
+
+    expect(screen.queryByText(/Fresh data|Retrieved from cache/)).not.toBeInTheDocument();
   });
 
-  it('displays unknown error message on API error without response data', async () => {
-    mockedAxios.get.mockRejectedValue(new Error('Network error'));
+  it('displays fallback error message when no response data', async () => {
+    mockedAxios.get.mockRejectedValue(new Error('Network failure'));
+
     render(<Dashboard />);
-    
-    const input = screen.getByPlaceholderText(/Enter address/);
-    fireEvent.change(input, { target: { value: 'New York' } });
-    fireEvent.submit(input.closest('form'));
-    
-    await waitFor(() => {
-      expect(screen.getByText('Unknown error')).toBeInTheDocument();
-    });
+
+    const input = screen.getByPlaceholderText(/Enter address/i);
+    const submitButton = screen.getByRole('button', { name: /Get Forecast/i });
+
+    fireEvent.change(input, { target: { value: 'Chicago' } });
+    fireEvent.click(submitButton);
+
+    expect(await screen.findByText('Unable to fetch forecast')).toBeInTheDocument();
   });
 
-  it('calls API with correct parameters', async () => {
-    mockedAxios.get.mockResolvedValue({ data: {} });
-    render(<Dashboard />);
-    
-    const input = screen.getByPlaceholderText(/Enter address/);
-    fireEvent.change(input, { target: { value: 'New York' } });
-    fireEvent.submit(input.closest('form'));
-    
-    await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith('/weather', {
-        params: { address: 'New York' }
-      });
-    });
+  it('uses client cache on repeated identical request', async () => {
+  const mockData = {
+    address: 'Austin, TX',
+    current_temp: 88,
+    low_today: 70,
+    high_today: 92,
+    description: 'Partly cloudy',
+    icon: '02d',
+    cached_at: new Date().toISOString(),
+    extended_forecast: [],
+  };
+
+  mockedAxios.get.mockResolvedValue({ data: mockData });
+
+  render(<Dashboard />);
+
+  const input = screen.getByPlaceholderText(/Enter address/i);
+  const submitButton = screen.getByRole('button', { name: /Get Forecast/i });
+
+  fireEvent.change(input, { target: { value: 'Austin' } });
+  fireEvent.click(submitButton);
+
+  await waitFor(() => {
+    expect(screen.getByText('Austin, TX')).toBeInTheDocument();
+  });
+  expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+
+  fireEvent.change(input, { target: { value: '' } });
+  await waitFor(() =>
+    expect(screen.queryByText('Austin, TX')).not.toBeInTheDocument()
+  );
+
+  fireEvent.change(input, { target: { value: 'Austin' } });
+  fireEvent.click(submitButton);
+
+  await waitFor(() => {
+    expect(screen.getByText('Austin, TX')).toBeInTheDocument();
+    expect(screen.getByText(/Retrieved from cache/i)).toBeInTheDocument();
   });
 
-  it('clears previous forecast when making new request', async () => {
-    const mockForecast = {
-      address: '123 Main St',
-      resolved_zip: '10001',
-      current_temp: 72,
-      low: 65,
-      high: 78,
-      description: 'Sunny',
-      icon: '01d'
-    };
+  expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+});
 
-    mockedAxios.get.mockResolvedValueOnce({ data: mockForecast });
+  it('clears previous forecast when new search begins', async () => {
+    mockedAxios.get.mockResolvedValue({
+      data: {
+        address: 'Seattle, WA',
+        current_temp: 55,
+        low_today: 48,
+        high_today: 60,
+        description: 'Rainy',
+        icon: '10d',
+        cached_at: new Date().toISOString(),
+        extended_forecast: []
+      }
+    });
+
     render(<Dashboard />);
-    
     const input = screen.getByPlaceholderText(/Enter address/);
-    fireEvent.change(input, { target: { value: 'New York' } });
-    fireEvent.submit(input.closest('form'));
-    
-    await waitFor(() => {
-      expect(screen.getByText('123 Main St')).toBeInTheDocument();
-    });
 
-    mockedAxios.get.mockImplementation(() => new Promise(() => {}));
-    fireEvent.change(input, { target: { value: 'Boston' } });
+    fireEvent.change(input, { target: { value: 'Seattle' } });
     fireEvent.submit(input.closest('form'));
-    
-    await waitFor(() => {
-      expect(screen.queryByText('123 Main St')).not.toBeInTheDocument();
-    });
+    await waitFor(() => expect(screen.getByText('Seattle, WA')).toBeInTheDocument());
+
+    fireEvent.change(input, { target: { value: 'Denver' } });
+
+    expect(screen.queryByText('Seattle, WA')).not.toBeInTheDocument();
   });
 });
