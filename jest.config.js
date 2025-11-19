@@ -3,7 +3,7 @@ module.exports = {
   collectCoverage: true,
   collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}'],
   coverageReporters: ['text', 'lcov'],
-  setupFilesAfterEnv: ['/mnt/c/build/weather_forecast_app/setupTests.js'],
+  setupFilesAfterEnv: ['@testing-library/jest-dom'],
   moduleNameMapper: {
     '\\.(css|scss)$': 'identity-obj-proxy',
   },

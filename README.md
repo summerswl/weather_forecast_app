@@ -23,15 +23,19 @@ Setup required for app to load and run on local environment:
 
 * Deployment instructions ...
     * Start application with Docker:
-        build app by running 'docker compose --build' command
+        build app by running 'docker compose up --build' command
         App should be running at http://localhost:3000
 
 * How to run the test suite ...
-    * Rspec tests: run 'bundle exec rspec' command for full test suite
-        a single file can be run by adding the file structure to the command
-        ex. - 'bundle exec rspec spec/controllers/weather_controller_spec.rb'
-    * Jest tests: run 'npm test' command to run the full test suite
-        a single test can be run by executing the 'npm test' command combined
+    * Testing is integrated with docker. When npm testing commands are executed
+        the testing section within docker-compose will begin running the    
+        tests
+    * Run the 'npm run test' command to run all tests(rspec and jest)
+    * Rspec tests: run 'npm run test-rspec' command for full rpsec test suite
+        A single file can be run by adding the file structure to the command
+        ex. - 'npm run test-rspec spec/controllers/weather_controller_spec.rb'
+    * Jest tests: run 'npm run test-jest' command to run the full test suite
+        A single test can be run by executing the 'npm test' command combined
         with the file name. 
-        ex. - 'npm test Home.test.js'
+        ex. - 'npm run test-jest Home.test.js'
 

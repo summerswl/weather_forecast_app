@@ -1,36 +1,62 @@
+# spec/controllers/weather_controller_spec.rb
 require 'rails_helper'
 
-RSpec.describe WeatherController do
+RSpec.describe WeatherController, type: :controller do
   describe 'GET #show' do
     context 'when address is blank' do
-      it 'returns bad request error' do
+      it 'returns bad request with correct error message' do
         get :show, params: { address: '' }
+
         expect(response).to have_http_status(:bad_request)
-        expect(JSON.parse(response.body)['error']).to eq('Address is required')
+        json = response.parsed_body
+        expect(json['error']).to eq('Please enter an address')
       end
     end
 
-    context 'when ZIP cannot be determined' do
-      it 'returns unprocessable entity error' do
-        allow(GeocodeService).to receive(:zip_from_address).and_return(nil)
-        get :show, params: { address: 'invalid address' }
+    context 'when ForecastService returns an error' do
+      it 'returns unprocessable_entity with the service error' do
+        allow(ForecastService).to receive(:for_address)
+          .with('invalid place')
+          .and_return({ error: 'Unable to geocode address' })
+
+        get :show, params: { address: 'invalid place' }
+
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(JSON.parse(response.body)['error']).to eq('Could not determine ZIP code')
+        json = response.parsed_body
+        expect(json['error']).to eq('Unable to geocode address')
+      end
+
+      it 'handles string-keyed errors from the service' do
+        allow(ForecastService).to receive(:for_address)
+          .and_return('error' => 'Location not found')
+
+        get :show, params: { address: 'xyz' }
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json = response.parsed_body
+        expect(json['error']).to eq('Location not found')
       end
     end
 
-    context 'when valid address provided' do
-      it 'returns forecast data' do
-        allow(GeocodeService).to receive(:zip_from_address).and_return('12345')
-        allow(ForecastService).to receive(:for_zip).and_return({ temp: 75 })
-        
-        get :show, params: { address: '123 Main St' }
-        
+    context 'when valid address is provided' do
+      it 'returns the forecast data from ForecastService' do
+        mock_forecast = {
+          current_temp: 72,
+          description: 'Sunny',
+          icon: '01d',
+          address: 'Austin, TX',
+          cached_at: Time.current.iso8601,
+          extended_forecast: []
+        }
+
+        allow(ForecastService).to receive(:for_address)
+          .with('Austin')
+          .and_return(mock_forecast)
+
+        get :show, params: { address: 'Austin' }
+
         expect(response).to have_http_status(:ok)
-        json = JSON.parse(response.body)
-        expect(json['address']).to eq('123 Main St')
-        expect(json['resolved_zip']).to eq('12345')
-        expect(json['temp']).to eq(75)
+        expect(response.parsed_body).to eq(mock_forecast.as_json)
       end
     end
   end

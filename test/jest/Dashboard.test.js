@@ -42,7 +42,7 @@ describe('Dashboard Component', () => {
 
   fireEvent.click(submitButton);
 
-  expect(await screen.findByText('Please enter an address')).toBeInTheDocument();
+  expect(await screen.findByText('Please enter an address or ZIP code')).toBeInTheDocument();
 
   expect(mockedAxios.get).not.toHaveBeenCalled();
 });
@@ -95,7 +95,8 @@ describe('Dashboard Component', () => {
   fireEvent.click(submitButton);
 
   await waitFor(() => {
-    expect(screen.getByText('Beverly Hills, CA')).toBeInTheDocument();
+    // User typed "90210" → ZIP-only → component shows resolved address + ZIP
+    expect(screen.getByText('Beverly Hills, CA 90210')).toBeInTheDocument();
     expect(screen.getByText('78°F')).toBeInTheDocument();
     expect(screen.getByText('62°F – 84°F')).toBeInTheDocument();
     expect(screen.getByText('Clear sky')).toBeInTheDocument();
@@ -148,47 +149,50 @@ describe('Dashboard Component', () => {
   });
 
   it('uses client cache on repeated identical request', async () => {
-  const mockData = {
-    address: 'Austin, TX',
-    current_temp: 88,
-    low_today: 70,
-    high_today: 92,
-    description: 'Partly cloudy',
-    icon: '02d',
-    cached_at: new Date().toISOString(),
-    extended_forecast: [],
-  };
+    const mockData = {
+      address: 'Austin, TX',
+      current_temp: 88,
+      low_today: 70,
+      high_today: 92,
+      description: 'Partly cloudy',
+      icon: '02d',
+      cached_at: new Date().toISOString(),
+      extended_forecast: [],
+    };
 
-  mockedAxios.get.mockResolvedValue({ data: mockData });
+    mockedAxios.get.mockResolvedValue({ data: mockData });
 
-  render(<Dashboard />);
+    render(<Dashboard />);
 
-  const input = screen.getByPlaceholderText(/Enter address/i);
-  const submitButton = screen.getByRole('button', { name: /Get Forecast/i });
+    const input = screen.getByPlaceholderText(/Enter address/i);
+    const submitButton = screen.getByRole('button', { name: /Get Forecast/i });
 
-  fireEvent.change(input, { target: { value: 'Austin' } });
-  fireEvent.click(submitButton);
+    // First search
+    fireEvent.change(input, { target: { value: 'Austin' } });
+    fireEvent.click(submitButton);
 
-  await waitFor(() => {
-    expect(screen.getByText('Austin, TX')).toBeInTheDocument();
+    await waitFor(() => {
+      // User typed "Austin" → component shows exactly "Austin"
+      expect(screen.getByText('Austin')).toBeInTheDocument();
+      expect(screen.getByText('88°F')).toBeInTheDocument();
+    });
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+
+    // Clear input and search again with same term
+    fireEvent.change(input, { target: { value: '' } });
+    await waitFor(() => expect(screen.queryByText('Austin')).not.toBeInTheDocument());
+
+    fireEvent.change(input, { target: { value: 'Austin' } });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Austin')).toBeInTheDocument();
+      expect(screen.getByText(/Retrieved from cache/i)).toBeInTheDocument();
+    });
+
+    // API was called only once → cache worked
+    expect(mockedAxios.get).toHaveBeenCalledTimes(1);
   });
-  expect(mockedAxios.get).toHaveBeenCalledTimes(1);
-
-  fireEvent.change(input, { target: { value: '' } });
-  await waitFor(() =>
-    expect(screen.queryByText('Austin, TX')).not.toBeInTheDocument()
-  );
-
-  fireEvent.change(input, { target: { value: 'Austin' } });
-  fireEvent.click(submitButton);
-
-  await waitFor(() => {
-    expect(screen.getByText('Austin, TX')).toBeInTheDocument();
-    expect(screen.getByText(/Retrieved from cache/i)).toBeInTheDocument();
-  });
-
-  expect(mockedAxios.get).toHaveBeenCalledTimes(1);
-});
 
   it('clears previous forecast when new search begins', async () => {
     mockedAxios.get.mockResolvedValue({
@@ -209,10 +213,11 @@ describe('Dashboard Component', () => {
 
     fireEvent.change(input, { target: { value: 'Seattle' } });
     fireEvent.submit(input.closest('form'));
-    await waitFor(() => expect(screen.getByText('Seattle, WA')).toBeInTheDocument());
+    // User typed "Seattle" → not ZIP-only → shows exactly "Seattle"
+    await waitFor(() => expect(screen.getByText('Seattle')).toBeInTheDocument());
 
     fireEvent.change(input, { target: { value: 'Denver' } });
 
-    expect(screen.queryByText('Seattle, WA')).not.toBeInTheDocument();
+    expect(screen.queryByText('Seattle')).not.toBeInTheDocument();
   });
 });

@@ -81,42 +81,48 @@ export default class LoginAuth extends Component {
   };
 
   render() {
-    const { loginErrors } = this.state;
+  const { loginErrors } = this.state;
 
-    return (
-      <div>
-        <form onSubmit={this.handleSubmit} autoComplete="on">
+  return (
+    <div>
+      <form onSubmit={this.handleSubmit} autoComplete="on">
+        {/* Prevents browsers from autofilling the real fields with saved credentials */}
+        <input type="text" style={{ display: 'none' }} />
+        <input type="password" style={{ display: 'none' }} />
 
-          <input type="text" style={{ display: 'none' }} />
-          <input type="password" style={{ display: 'none' }} />
+        {loginErrors && (
+          <div className="error-message" role="alert">
+            {loginErrors}
+          </div>
+        )}
 
-          <input
-            type="email"
-            name="email"                  
-            placeholder="Email"
-            value={this.state.email}
-            onChange={this.handleChange}
-            className="loginInput"
-            autoComplete="username"       
-            required
-          />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={this.state.email}
+          onChange={this.handleChange}
+          className="loginInput"
+          autoComplete="username"
+          required
+        />
 
-          <input
-            type="password"
-            name="password"               
-            placeholder="Password"
-            value={this.state.password}
-            onChange={this.handleChange}
-            className="loginInput"
-            autoComplete="current-password"  
-            required
-          />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={this.state.password}
+          onChange={this.handleChange}
+          className="loginInput"
+          autoComplete="current-password"
+          required
+        />
 
-          <button type="submit" className="btn-primary">
-            Login
-          </button>
-        </form>
-      </div>
-    );
-  }
+        <button type="submit" className="btn-primary">
+          Login
+        </button>
+      </form>
+    </div>
+  );
+}
 }

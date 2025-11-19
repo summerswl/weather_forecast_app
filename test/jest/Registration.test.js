@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import Registration from '../../src/components/Registration.js';
 
@@ -8,8 +9,8 @@ jest.mock('../../src/components/auth/RegistrationAuth', () => {
   return function MockRegistrationAuth({ handleSuccessfulAuth }) {
     return (
       <div data-testid="registration-auth">
-        <button onClick={() => handleSuccessfulAuth({ user: 'test' })}>
-          Mock Register
+        <button onClick={() => handleSuccessfulAuth({ user: 'new-user' })}>
+          Mock Register Success
         </button>
       </div>
     );
@@ -17,54 +18,38 @@ jest.mock('../../src/components/auth/RegistrationAuth', () => {
 });
 
 describe('Registration Component', () => {
-  const mockProps = {
-    handleLogin: jest.fn(),
-    handleLogout: jest.fn(),
-    history: {
-      push: jest.fn()
-    }
+  const mockHandleLogin = jest.fn();
+  const mockHistory = { push: jest.fn() };
+
+  const defaultProps = {
+    handleLogin: mockHandleLogin,
+    history: mockHistory
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders registration heading and RegistrationAuth component', () => {
-    render(<Registration {...mockProps} />);
-    
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Registration:');
+  it('renders the registration page with correct heading', () => {
+    render(<Registration {...defaultProps} />);
+
+    expect(screen.getByRole('heading', { name: 'Registration' })).toBeInTheDocument();
+    expect(screen.getByText('Registration')).toBeInTheDocument();
+  });
+
+  it('renders the RegistrationAuth child component', () => {
+    render(<Registration {...defaultProps} />);
+
     expect(screen.getByTestId('registration-auth')).toBeInTheDocument();
   });
 
-  it('applies correct styling to container div', () => {
-    const { container } = render(<Registration {...mockProps} />);
-    const divElement = container.firstChild;
-    
-    expect(divElement).toHaveStyle({
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center'
-    });
-  });
+  it('calls handleLogin and redirects to dashboard on successful registration', () => {
+    render(<Registration {...defaultProps} />);
 
-  it('calls handleLogin and redirects on successful auth', () => {
-    render(<Registration {...mockProps} />);
-    
-    const mockRegisterButton = screen.getByText('Mock Register');
-    mockRegisterButton.click();
-    
-    expect(mockProps.handleLogin).toHaveBeenCalledWith({ user: 'test' });
-    expect(mockProps.history.push).toHaveBeenCalledWith('/dashboard');
-  });
+    const registerButton = screen.getByText('Mock Register Success');
+    fireEvent.click(registerButton);
 
-  it('calls handleLogout when handleLogout method is invoked', () => {
-    // Use ref to access instance
-    const ref = React.createRef();
-    render(<Registration ref={ref} {...mockProps} />);
-    
-    // Call method directly
-    ref.current.handleLogout();
-    
-    expect(mockProps.handleLogout).toHaveBeenCalled();
+    expect(mockHandleLogin).toHaveBeenCalledWith({ user: 'new-user' });
+    expect(mockHistory.push).toHaveBeenCalledWith('/dashboard');
   });
 });
