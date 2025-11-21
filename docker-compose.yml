@@ -17,12 +17,14 @@ services:
 
   rails:
     build: .
-    command: bin/rails server -b 0.0.0.0 -p 3000
+    command: >
+      sh -c "
+        bundle exec rails db:prepare RAILS_ENV=production || true &&
+        bundle exec rails assets:precompile RAILS_ENV=production &&
+        exec bundle exec rails server -b 0.0.0.0 -p 3000
+      "
     ports:
       - "3001:3000"
-    volumes:
-      - .:/weather_forecast_app
-      - bundle_data:/usr/local/bundle
     depends_on:
       db:
         condition: service_healthy
@@ -39,7 +41,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
-      start_period: 30s   # Give Rails time to boot
+      start_period: 40s
 
   react:
     image: node:20-alpine
