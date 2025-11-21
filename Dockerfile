@@ -30,11 +30,14 @@ RUN gem install bundler -v "$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1 
 # Copy the rest of the application
 COPY . .
 
-RUN chmod +x bin/docker-entrypoint
+# ← THIS IS THE ONLY PART YOU NEED TO CHANGE
+RUN chmod +x bin/rails bin/rake bin/docker-entrypoint
 
-# Precompile bootsnap cache for faster boot (optional but recommended)
+# Precompile bootsnap cache
 RUN bundle exec bootsnap precompile --gemfile app lib
 
 EXPOSE 3000
 
+# Use the proper Rails entrypoint (recommended)
+ENTRYPOINT ["bin/docker-entrypoint"]
 CMD ["rails", "server", "-b", "0.0.0.0"]
