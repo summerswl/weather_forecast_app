@@ -57,6 +57,6 @@ services:
     command: sh -c "npm ci --silent && npm run start-docker"
 
   volumes:
-  postgres-db:
-  bundle_data:
-  node_modules:
+    postgres-db:
+    bundle_data:
+    node_modules:
