@@ -14,15 +14,11 @@ RUN gem install bundler -v "$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1 
     bundle config set --local without 'production' && \
     bundle install --jobs=4 --retry=3
 
-# Copy app 
 COPY . .
-
-RUN chmod +x bin/rails bin/rake
 
 # Precompile bootsnap
 RUN bundle exec bootsnap precompile --gemfile app lib
 
 EXPOSE 3000
 
-# Rails built-in lifecycle hooks
-CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
+CMD ["/bin/sh", "-c", "exec bundle exec rails server -b 0.0.0.0 -p 3000"]
