@@ -1,4 +1,3 @@
-# docker-compose.yml — FINAL VERSION THAT JUST WORKS™
 services:
   db:
     image: postgres:16-alpine
@@ -8,8 +7,6 @@ services:
       POSTGRES_DB: weather_forecast_app_production
     volumes:
       - postgres-db:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U super_admin -d weather_forecast_app_production"]
       interval: 5s
@@ -18,19 +15,9 @@ services:
 
   rails:
     build: .
-    command: >
-      sh -c "
-        echo 'Running database setup...' &&
-        bin/rails db:prepare RAILS_ENV=production || bin/rails db:migrate RAILS_ENV=production &&
-
-        echo 'Precompiling assets...' &&
-        bin/rails assets:precompile RAILS_ENV=production &&
-
-        echo 'Starting Rails server on port 3000...' &&
-        exec bin/rails server -b 0.0.0.0 -p 3000
-      "
+    command: bin/rails server -b 0.0.0.0 -p 3000
     ports:
-      - "3001:3000"                     
+      - "3001:3000"
     volumes:
       - .:/weather_forecast_app
       - bundle_data:/usr/local/bundle
@@ -43,13 +30,14 @@ services:
       DATABASE_USERNAME: super_admin
       DATABASE_PASSWORD: SomeSecretPassword
       DATABASE_NAME: weather_forecast_app_production
-      RAILS_SERVE_STATIC_FILES: "true"   
+      RAILS_SERVE_STATIC_FILES: "true"
       RAILS_LOG_TO_STDOUT: "true"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/up || exit 1"]
       interval: 15s
       timeout: 5s
-      retries: 10
+      retries: 5
+      start_period: 30s   # Give Rails time to boot
 
   react:
     image: node:20-alpine
@@ -58,15 +46,16 @@ services:
       - .:/app
       - node_modules:/app/node_modules
     ports:
-      - "3000:3000"                       
+      - "3000:3000"
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WDS_SOCKET_PORT=0
       - HOST=0.0.0.0
       - PORT=3000
-      - RAILS_API_URL=http://rails:3000   
+      - RAILS_API_URL=http://rails:3000
     depends_on:
-      - rails
+      rails:
+        condition: service_healthy
     command: sh -c "npm ci --silent && npm run start-docker"
 
 volumes:

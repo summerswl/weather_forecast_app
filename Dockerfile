@@ -17,6 +17,8 @@ RUN gem install bundler -v "$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1 
 # Copy app 
 COPY . .
 
+RUN chmod +x bin/rails bin/rake
+
 # Precompile bootsnap
 RUN bundle exec bootsnap precompile --gemfile app lib
 
