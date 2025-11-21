@@ -1,43 +1,53 @@
-# docker-compose.yml
-
+# docker-compose.yml — FINAL VERSION THAT JUST WORKS™
 services:
   db:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: super_admin
       POSTGRES_PASSWORD: SomeSecretPassword
-      POSTGRES_DB: weather_forecast_app
+      POSTGRES_DB: weather_forecast_app_production
     volumes:
       - postgres-db:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U super_admin -d weather_forecast_app"]
+      test: ["CMD-SHELL", "pg_isready -U super_admin -d weather_forecast_app_production"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   rails:
     build: .
-    entrypoint: /weather_forecast_app/bin/docker-entrypoint
-    command: rails server -b 0.0.0.0 -p 3001
+    command: >
+      sh -c "
+        echo 'Running database setup...' &&
+        bin/rails db:prepare RAILS_ENV=production || bin/rails db:migrate RAILS_ENV=production &&
+
+        echo 'Precompiling assets...' &&
+        bin/rails assets:precompile RAILS_ENV=production &&
+
+        echo 'Starting Rails server on port 3000...' &&
+        exec bin/rails server -b 0.0.0.0 -p 3000
+      "
+    ports:
+      - "3001:3000"                     
     volumes:
       - .:/weather_forecast_app
       - bundle_data:/usr/local/bundle
-    ports:
-      - "3001:3001"
     depends_on:
       db:
         condition: service_healthy
     environment:
+      RAILS_ENV: production
       DATABASE_HOST: db
       DATABASE_USERNAME: super_admin
       DATABASE_PASSWORD: SomeSecretPassword
-      DATABASE_NAME: weather_forecast_app
-      RAILS_ENV: development
+      DATABASE_NAME: weather_forecast_app_production
+      RAILS_SERVE_STATIC_FILES: "true"   
+      RAILS_LOG_TO_STDOUT: "true"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001"]
-      interval: 10s
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 15s
       timeout: 5s
       retries: 10
 
@@ -48,45 +58,16 @@ services:
       - .:/app
       - node_modules:/app/node_modules
     ports:
-      - "3000:3000"
+      - "3000:3000"                       
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WDS_SOCKET_PORT=0
       - HOST=0.0.0.0
-      - RAILS_HOST=rails
-      - RAILS_PORT=3001
+      - PORT=3000
+      - RAILS_API_URL=http://rails:3000   
     depends_on:
       - rails
     command: sh -c "npm ci --silent && npm run start-docker"
-
-  test-rspec:
-    build: .
-    entrypoint: /weather_forecast_app/bin/docker-entrypoint-test
-    profiles: ["tests"]
-    volumes:
-      - .:/weather_forecast_app
-      - bundle_data:/usr/local/bundle
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      RAILS_ENV: test
-      DATABASE_HOST: db
-      DATABASE_USERNAME: super_admin
-      DATABASE_PASSWORD: SomeSecretPassword
-      DATABASE_NAME: weather_forecast_app   
-
-  test-jest:
-    image: node:20-alpine                             # ← pure Node image
-    working_dir: /weather_forecast_app
-    volumes:
-      - .:/weather_forecast_app
-      - node_modules:/weather_forecast_app/node_modules   # ← instant reuse
-    environment:
-      NODE_ENV: test
-      CI: "true"
-    profiles: ["tests"]
-    # No entrypoint, no command → Docker runs whatever you pass
 
 volumes:
   postgres-db:
