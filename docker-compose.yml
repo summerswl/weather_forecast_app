@@ -7,6 +7,8 @@ services:
       POSTGRES_DB: weather_forecast_app_production
     volumes:
       - postgres-db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U super_admin -d weather_forecast_app_production"]
       interval: 5s
