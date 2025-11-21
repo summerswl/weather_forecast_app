@@ -1,8 +1,11 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 set -e
 
 echo "Running database migrations..."
-bundle exec rails db:migrate
+bundle exec rails db:migrate RAILS_ENV=production
+
+echo "Precompiling assets (if needed)..."
+bundle exec rails assets:precompile || true
 
 echo "Starting Rails server..."
 exec "$@"
