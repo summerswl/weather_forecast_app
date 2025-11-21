@@ -37,13 +37,7 @@ services:
       RAILS_SERVE_STATIC_FILES: "true"
       RAILS_LOG_TO_STDOUT: "true"
       SECRET_KEY_BASE: "c3f8a9b7d2e1f4c6b9a8d7e6f5c4b3a291807968574362150e4d3c2b1a90877655443322110099887766554433221100ffeeddccbbaa99887766554433221100"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000/rails/info/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-
+    
   react:
     image: node:20-alpine
     working_dir: /app
@@ -59,11 +53,10 @@ services:
       - PORT=3000
       - RAILS_API_URL=http://rails:3000
     depends_on:
-      rails:
-        condition: service_healthy
+      - rails
     command: sh -c "npm ci --silent && npm run start-docker"
 
-volumes:
+  volumes:
   postgres-db:
   bundle_data:
   node_modules:
