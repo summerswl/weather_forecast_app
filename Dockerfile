@@ -19,25 +19,19 @@ RUN apt-get update -qq && \
 # Create app directory
 WORKDIR /weather_forecast_app
 
-# Install bundler and gems
 COPY Gemfile Gemfile.lock ./
 
-# Use a consistent bundler version and install gems
 RUN gem install bundler -v "$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1 | xargs)" --conservative && \
     bundle config set --local without 'production' && \
     bundle install --jobs=4 --retry=3
 
-# Copy the rest of the application
-COPY . .
+# ← THIS IS THE REAL FIX (Docker 1.6+ syntax)
+COPY --chmod=+x . .
 
-# ← THIS IS THE ONLY PART YOU NEED TO CHANGE
-RUN chmod +x bin/rails bin/rake bin/docker-entrypoint
-
-# Precompile bootsnap cache
+# Precompile bootsnap (forces new layer)
 RUN bundle exec bootsnap precompile --gemfile app lib
 
 EXPOSE 3000
 
-# Use the proper Rails entrypoint (recommended)
 ENTRYPOINT ["bin/docker-entrypoint"]
 CMD ["rails", "server", "-b", "0.0.0.0"]
