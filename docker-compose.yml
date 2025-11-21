@@ -38,11 +38,11 @@ services:
       RAILS_LOG_TO_STDOUT: "true"
       SECRET_KEY_BASE: "c3f8a9b7d2e1f4c6b9a8d7e6f5c4b3a291807968574362150e4d3c2b1a90877655443322110099887766554433221100ffeeddccbbaa99887766554433221100"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000/up || exit 1"]
-      interval: 15s
-      timeout: 5s
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/rails/info/health || exit 1"]
+      interval: 30s
+      timeout: 10s
       retries: 5
-      start_period: 40s
+      start_period: 60s
 
   react:
     image: node:20-alpine
