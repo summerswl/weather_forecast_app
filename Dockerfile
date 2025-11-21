@@ -30,6 +30,8 @@ RUN gem install bundler -v "$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1 
 # Copy the rest of the application
 COPY . .
 
+RUN chmod +x bin/docker-entrypoint
+
 # Precompile bootsnap cache for faster boot (optional but recommended)
 RUN bundle exec bootsnap precompile --gemfile app lib
 
