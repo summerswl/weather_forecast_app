@@ -66,7 +66,7 @@ module.exports = webpackMerge(webpackCommon, {
     })
   ],
   devServer: {
-    host: devServerHost,  // Binds to 0.0.0.0 in Docker
+    host: devServerHost,                    // 0.0.0.0 in Docker, localhost locally
     port: env.devServer.port || 3000,
     static: path.resolve(__dirname, '../static'),
     compress: true,
@@ -76,21 +76,56 @@ module.exports = webpackMerge(webpackCommon, {
       overlay: true,
       progress: true,
     },
-    proxy: [
-      {
-        context: ['/weather'],
-        target: process.env.PROXY_TARGET || proxyTarget,   // ← falls back gracefully
+
+    // THIS IS THE FIXED & WORKING PROXY CONFIG
+    proxy: {
+      // All API endpoints you use
+      '/api': {
+        target: process.env.PROXY_TARGET || proxyTarget,   // Docker: http://rails:3000   | Local: http://localhost:3001
         changeOrigin: true,
-        logLevel: 'warn',
-        // This is the key: ignore the very first connection failure
-        onError: (err, req, res) => {
-          if (err.code === 'ECONNREFUSED') {
-            console.warn('Proxy target not ready yet – will retry automatically...');
-            res.writeHead(502);
-            res.end('Backend is starting up, please wait...');
-          }
-        },
+        secure: false,
+        ws: true,                                         // if you ever use WebSocket
+      },
+
+      // Devise routes
+      '/registrations': {
+        target: process.env.PROXY_TARGET || proxyTarget,
+        changeOrigin: true,
+        secure: false,
+      },
+      '/sessions': {
+        target: process.env.PROXY_TARGET || proxyTarget,
+        changeOrigin: true,
+        secure: false,
+      },
+      '/users': {
+        target: process.env.PROXY_TARGET || proxyTarget,
+        changeOrigin: true,
+        secure: false,
+      },
+
+      // Any other custom routes (add as needed)
+      '/weather': {
+        target: process.env.PROXY_TARGET || proxyTarget,
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+
+    // This makes credentials (cookies/sessions) work through the proxy
+    devMiddleware: {
+      // Required for withCredentials: true to work when proxying
+      // (Webpack 5 + webpack-dev-server 4+ needs this)
+      publicPath: '/',
+    },
+
+    // Graceful handling when Rails is still starting
+    onProxyError: (err, req, res) => {
+      if (err.code === 'ECONNREFUSED') {
+        console.warn('Backend not ready yet – retrying...');
+        res.writeHead(502, { 'Content-Type': 'text/plain' });
+        res.end('Backend is starting up – please wait a moment and try again.');
       }
-    ]
-  }
+    },
+  },
 });
