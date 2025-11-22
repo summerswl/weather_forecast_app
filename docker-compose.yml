@@ -1,45 +1,5 @@
-services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: super_admin
-      POSTGRES_PASSWORD: SomeSecretPassword
-      POSTGRES_DB: weather_forecast_app_production
-    volumes:
-      - postgres-db:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U super_admin -d weather_forecast_app_production"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-  rails:
-    build: .
-    command: >
-      sh -c "
-        bundle exec rails db:prepare RAILS_ENV=production || true &&
-        bundle exec rails assets:precompile RAILS_ENV=production &&
-        exec bundle exec rails server -b 0.0.0.0 -p 3000
-      "
-    ports:
-      - "3001:3000"
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      RAILS_ENV: production
-      DATABASE_HOST: db
-      DATABASE_USERNAME: super_admin
-      DATABASE_PASSWORD: SomeSecretPassword
-      DATABASE_NAME: weather_forecast_app_production
-      RAILS_SERVE_STATIC_FILES: "true"
-      RAILS_LOG_TO_STDOUT: "true"
-      SECRET_KEY_BASE: "c3f8a9b7d2e1f4c6b9a8d7e6f5c4b3a291807968574362150e4d3c2b1a90877655443322110099887766554433221100ffeeddccbbaa99887766554433221100"
-    
   react:
-    image: node:16-alpine   
+    image: node:16-alpine
     working_dir: /app
     volumes:
       - .:/app
@@ -52,7 +12,9 @@ services:
       - HOST=0.0.0.0
       - PORT=3000
       - RAILS_API_URL=http://rails:3000
-      - npm_config_unsafe_perm=true      
+      # These two lines together silence the root-owned cache error forever
+      - npm_config_unsafe_perm=true
+      - npm_config_cache=/tmp/.npm           # <-- important
     tty: true
     stdin_open: true
     depends_on:
@@ -60,20 +22,12 @@ services:
         condition: service_started
     command: >
       sh -c "
-        echo 'Waiting for Rails to start listening on port 3000...' &&
+        echo 'Waiting for Rails...' &&
         apk add --no-cache busybox-extras 2>/dev/null || true &&
-        until nc -z rails 3000 2>/dev/null; do
-          echo 'Rails not ready yet — retrying in 3 seconds...'
-          sleep 3
-        done &&
+        until nc -z rails 3000; do sleep 3; done &&
         echo 'Rails is up!' &&
         echo 'Installing dependencies...' &&
         npm ci --legacy-peer-deps --silent &&
         echo 'Starting Webpack Dev Server...' &&
         npm run start-docker
       "
-
-volumes:
-  postgres-db:
-  bundle_data:
-  node_modules:
