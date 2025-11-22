@@ -39,8 +39,9 @@ services:
       SECRET_KEY_BASE: "c3f8a9b7d2e1f4c6b9a8d7e6f5c4b3a291807968574362150e4d3c2b1a90877655443322110099887766554433221100ffeeddccbbaa99887766554433221100"
     
   react:
-    image: node:16-alpine   # ← Critical: Node 16 is the last version fully compatible with your stack
+    image: node:16-alpine   
     working_dir: /app
+    user: "1000:1000"
     volumes:
       - .:/app
       - node_modules:/app/node_modules
@@ -67,7 +68,7 @@ services:
           sleep 3
         done &&
         echo 'Rails is up!' &&
-        echo 'Installing dependencies with npm 8 (Node 16 default)...' &&
+        echo 'Installing dependencies...' &&
         npm ci --legacy-peer-deps --silent &&
         echo 'Starting Webpack Dev Server...' &&
         npm run start-docker
