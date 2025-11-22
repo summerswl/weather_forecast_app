@@ -53,7 +53,7 @@ export default class RegistrationAuth extends Component {
   handleSubmit = (event) => {
     const { email, password, password_confirmation } = this.state;
 
-    axios.post("/", {
+    axios.post("/registrations", {
       user: { email, password, password_confirmation }
     }, { withCredentials: true })
       .then(response => {
