@@ -58,7 +58,7 @@ services:
     command: >
       sh -c "
         echo 'Waiting for Rails API at http://rails:3000...' &&
-        until curl -s http://rails:3000 > /dev/null 2>&1; do
+        until wget -q --spider http://rails:3000 2>/dev/null; do
           echo 'Still waiting for Rails... (will retry in 3s)'
           sleep 3
         done &&
