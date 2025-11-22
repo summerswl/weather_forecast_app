@@ -7,25 +7,22 @@ services:
       POSTGRES_DB: weather_forecast_app_production
     volumes:
       - postgres-db:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U super_admin -d weather_forecast_app_production"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+    # ← removed healthcheck (you said it was failing)
 
   rails:
     build: .
     command: >
       sh -c "
+        echo '=== Waiting for PostgreSQL to be ready ===' &&
+        until pg_isready -h db -p 5432 -U super_admin; do sleep 2; done &&
         bundle exec rails db:prepare RAILS_ENV=production || true &&
         bundle exec rails assets:precompile RAILS_ENV=production &&
         exec bundle exec rails server -b 0.0.0.0 -p 3000
       "
     ports:
-      - "3001:3000"                  
+      - "3001:3000"          # optional, only for debugging
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     environment:
       RAILS_ENV: production
       RAILS_LOG_TO_STDOUT: "true"
@@ -49,19 +46,19 @@ services:
       - WDS_SOCKET_PORT=0
       - HOST=0.0.0.0
       - PORT=3000
-      - PROXY_TARGET=http://rails:3000          
+      - PROXY_TARGET=http://rails:3000          # ← this is critical
       - npm_config_unsafe_perm=true
       - npm_config_cache=/tmp/.npm
       - XDG_CONFIG_HOME=/tmp/.config
     tty: true
     stdin_open: true
     depends_on:
-      rails:
-        condition: service_started                
+      - rails
     command: >
       sh -c "
-        apk add --no-cache busybox-extras netcat-openbsd 2>/dev/null || true &&
-        until nc -z rails 3000; do echo 'Waiting for Rails...'; sleep 3; done &&
+        apk add --no-cache netcat-openbsd 2>/dev/null || true &&
+        echo '=== Waiting for Rails on port 3000 ===' &&
+        until nc -z rails 3000; do sleep 2; done &&
         npm ci --legacy-peer-deps --silent &&
         npm run start-docker
       "
