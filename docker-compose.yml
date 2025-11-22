@@ -22,7 +22,7 @@ services:
         exec bundle exec rails server -b 0.0.0.0 -p 3000
       "
     ports:
-      - "3001:3000"                  # optional, for direct access if needed
+      - "3001:3000"                  
     depends_on:
       db:
         condition: service_healthy
@@ -49,7 +49,7 @@ services:
       - WDS_SOCKET_PORT=0
       - HOST=0.0.0.0
       - PORT=3000
-      - PROXY_TARGET=http://rails:3000          # ← CRITICAL: tells webpack to proxy to correct port
+      - PROXY_TARGET=http://rails:3000          
       - npm_config_unsafe_perm=true
       - npm_config_cache=/tmp/.npm
       - XDG_CONFIG_HOME=/tmp/.config
@@ -57,7 +57,7 @@ services:
     stdin_open: true
     depends_on:
       rails:
-        condition: service_healthy                # ← wait for Rails to be fully ready
+        condition: service_started                
     command: >
       sh -c "
         apk add --no-cache busybox-extras netcat-openbsd 2>/dev/null || true &&
