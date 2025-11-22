@@ -51,9 +51,7 @@ services:
       - WDS_SOCKET_PORT=0
       - HOST=0.0.0.0
       - PORT=3000
-      - RAILS_API_URL=http://rails:3000
-      # Force legacy OpenSSL provider for Node 16 + some older native deps
-      - NODE_OPTIONS=--openssl-legacy-provider
+      - RAILS_API_URL=http://rails:3000      
     tty: true
     stdin_open: true
     depends_on:
