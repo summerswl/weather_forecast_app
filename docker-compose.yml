@@ -65,7 +65,9 @@ services:
           echo 'Rails not ready yet — retrying in 3 seconds...'
           sleep 3
         done &&
-        echo 'Rails is up!' 
+        echo 'Rails is up!'
+        echo 'Installing React dependencies...' &&
+        npm install && 
         echo 'Starting React development server...' &&
         npm run start-docker
       "
