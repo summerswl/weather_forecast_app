@@ -39,7 +39,7 @@ services:
       SECRET_KEY_BASE: "c3f8a9b7d2e1f4c6b9a8d7e6f5c4b3a291807968574362150e4d3c2b1a90877655443322110099887766554433221100ffeeddccbbaa99887766554433221100"
     
   react:
-    image: node:20-alpine
+    image: node:16-alpine   # ← Critical: Node 16 is the last version fully compatible with your stack
     working_dir: /app
     volumes:
       - .:/app
@@ -52,23 +52,25 @@ services:
       - HOST=0.0.0.0
       - PORT=3000
       - RAILS_API_URL=http://rails:3000
+      # Force legacy OpenSSL provider for Node 16 + some older native deps
+      - NODE_OPTIONS=--openssl-legacy-provider
     tty: true
     stdin_open: true
     depends_on:
       rails:
-        condition: service_started          
+        condition: service_started
     command: >
       sh -c "
         echo 'Waiting for Rails to start listening on port 3000...' &&
-        apk add --no-cache add busybox-extras 2>/dev/null || true &&  # adds telnet once, silently fails if already there
+        apk add --no-cache busybox-extras 2>/dev/null || true &&
         until nc -z rails 3000 2>/dev/null; do
           echo 'Rails not ready yet — retrying in 3 seconds...'
           sleep 3
         done &&
-        echo 'Rails is up!'
-        echo 'Installing React dependencies...' &&
-        npm install && 
-        echo 'Starting React development server...' &&
+        echo 'Rails is up!' &&
+        echo 'Installing dependencies with npm 8 (Node 16 default)...' &&
+        npm ci --legacy-peer-deps --silent &&
+        echo 'Starting Webpack Dev Server...' &&
         npm run start-docker
       "
 
