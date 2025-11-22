@@ -7,8 +7,6 @@ services:
       POSTGRES_DB: weather_forecast_app_production
     volumes:
       - postgres-db:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U super_admin -d weather_forecast_app_production"]
       interval: 5s
@@ -24,20 +22,20 @@ services:
         exec bundle exec rails server -b 0.0.0.0 -p 3000
       "
     ports:
-      - "3001:3000"
+      - "3001:3000"                  # optional, for direct access if needed
     depends_on:
       db:
         condition: service_healthy
     environment:
       RAILS_ENV: production
+      RAILS_LOG_TO_STDOUT: "true"
+      RAILS_SERVE_STATIC_FILES: "true"
+      SECRET_KEY_BASE: "c3f8a9b7d2e1f4c6b9a8d7e6f5c4b3a291807968574362150e4d3c2b1a90877655443322110099887766554433221100ffeeddccbbaa99887766554433221100"
       DATABASE_HOST: db
       DATABASE_USERNAME: super_admin
       DATABASE_PASSWORD: SomeSecretPassword
       DATABASE_NAME: weather_forecast_app_production
-      RAILS_SERVE_STATIC_FILES: "true"
-      RAILS_LOG_TO_STDOUT: "true"
-      SECRET_KEY_BASE: "c3f8a9b7d2e1f4c6b9a8d7e6f5c4b3a291807968574362150e4d3c2b1a90877655443322110099887766554433221100ffeeddccbbaa99887766554433221100"
-    
+
   react:
     image: node:16-alpine
     working_dir: /app
@@ -51,24 +49,23 @@ services:
       - WDS_SOCKET_PORT=0
       - HOST=0.0.0.0
       - PORT=3000
-      - RAILS_API_URL=http://rails:3000
+      - PROXY_TARGET=http://rails:3000          # ← CRITICAL: tells webpack to proxy to correct port
       - npm_config_unsafe_perm=true
       - npm_config_cache=/tmp/.npm
-      - XDG_CONFIG_HOME=/tmp/.config    
+      - XDG_CONFIG_HOME=/tmp/.config
     tty: true
     stdin_open: true
     depends_on:
       rails:
-        condition: service_started
+        condition: service_healthy                # ← wait for Rails to be fully ready
     command: >
       sh -c "
-        apk add --no-cache busybox-extras 2>/dev/null || true &&
-        until nc -z rails 3000; do sleep 3; done &&
+        apk add --no-cache busybox-extras netcat-openbsd 2>/dev/null || true &&
+        until nc -z rails 3000; do echo 'Waiting for Rails...'; sleep 3; done &&
         npm ci --legacy-peer-deps --silent &&
         npm run start-docker
       "
 
 volumes:
   postgres-db:
-  bundle_data:
   node_modules:
