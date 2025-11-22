@@ -54,7 +54,7 @@ export default class LoginAuth extends Component {
   handleSubmit = (event) => {
     const { email, password } = this.state;
 
-    axios.post("http://localhost:3001/sessions", {
+    axios.post("/", {
       user: { email, password }
     }, { withCredentials: true })
       .then(response => {
