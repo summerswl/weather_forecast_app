@@ -53,7 +53,7 @@ services:
       - HOST=0.0.0.0
       - PORT=3000
       - RAILS_API_URL=http://rails:3000
-      - NPM_CONFIG Unsafe_PERM=true      
+      - npm_config_unsafe_perm=true      
     tty: true
     stdin_open: true
     depends_on:
