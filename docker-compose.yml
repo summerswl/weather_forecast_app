@@ -53,8 +53,19 @@ services:
       - PORT=3000
       - RAILS_API_URL=http://rails:3000
     depends_on:
-      - rails
-    command: sh -c "npm ci --silent && npm run start-docker"
+      rails:
+        condition: service_started          
+    command: >
+      sh -c "
+        echo 'Waiting for Rails API at http://rails:3000...' &&
+        until curl -s http://rails:3000/up > /dev/null 2>&1; do
+          echo 'Still waiting for Rails... (will retry in 3s)'
+          sleep 3
+        done &&
+        echo 'Rails is up! Starting React...' &&
+        npm ci --silent &&
+        npm run start-docker
+      "
 
 volumes:
   postgres-db:
