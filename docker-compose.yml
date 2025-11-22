@@ -54,7 +54,7 @@ services:
       - RAILS_API_URL=http://rails:3000
       - npm_config_unsafe_perm=true
       - npm_config_cache=/tmp/.npm
-      - POSTCSS_CONFIG_HOME=/tmp/.postcss    
+      - XDG_CONFIG_HOME=/tmp/.config    
     tty: true
     stdin_open: true
     depends_on:
