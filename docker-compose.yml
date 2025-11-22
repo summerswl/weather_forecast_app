@@ -57,13 +57,15 @@ services:
         condition: service_started          
     command: >
       sh -c "
-        echo 'Waiting for Rails API at http://rails:3000...' &&
-        until wget -q --spider http://rails:3000 2>/dev/null; do
-          echo 'Still waiting for Rails... (will retry in 3s)'
+        echo 'Waiting for Rails to start listening on port 3000...' &&
+        apk add --no-cache add busybox-extras 2>/dev/null || true &&  # adds telnet once, silently fails if already there
+        until nc -z rails 3000 2>/dev/null; do
+          echo 'Rails not ready yet — retrying in 3 seconds...'
           sleep 3
         done &&
-        echo 'Rails is up! Starting React...' &&
+        echo 'Rails is up! Installing dependencies...' &&
         npm ci --silent &&
+        echo 'Starting React development server...' &&
         npm run start-docker
       "
 
