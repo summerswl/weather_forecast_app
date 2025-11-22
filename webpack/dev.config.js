@@ -5,7 +5,7 @@ const webpackCommon = require('./common.config');
 const env = require('../env');
 
 const devServerHost = process.env.HOST || env.devServer.host || 'localhost';
-const proxyTarget = process.env.PROXY_TARGET || `http://${process.env.RAILS_HOST || 'localhost'}:${process.env.RAILS_PORT || '3001'}`;
+const proxyTarget = process.env.PROXY_TARGET || 'http://rails:3000';
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
