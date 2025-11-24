@@ -62,7 +62,7 @@ class Header extends Component {
     return (
       <header className="header">
         <div className="headerContent">
-          <h1>Weather Forecast App AWS Pipeline</h1>
+          <h1>Weather Forecast App AWS Pipeline Version 2</h1>
           <nav className="authNav">{this.renderAuthButtons()}</nav>
         </div>
       </header>
