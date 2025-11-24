@@ -40,11 +40,10 @@ services:
 
   react:
     image: node:16-alpine
-    user: "node"                                           
+    user: node
     working_dir: /app
     volumes:
       - .:/app
-      - node_modules:/app/node_modules
     ports:
       - "3000:3000"
     environment:
@@ -52,14 +51,15 @@ services:
       CHOKIDAR_USEPOLLING: "true"
       HOST: 0.0.0.0
       PORT: 3000
-      HOME: /tmp                                             
+      HOME: /tmp
     depends_on:
       - rails
     command: >
       sh -c "
-        mkdir -p /tmp/.npm && chown node:node /tmp/.npm &&   # fix cache permissions once
+        rm -rf /app/node_modules &&
+        apk add --no-cache netcat-openbsd &&
         until nc -z rails 3000; do echo 'Waiting for Rails...'; sleep 3; done &&
-        npm ci --legacy-peer-deps --cache /tmp/.npm &&
+        npm ci --legacy-peer-deps &&
         npm run start-docker
       "
 
