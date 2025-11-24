@@ -85,14 +85,11 @@ echo "Bundler $(bundle --version)"
 RUBY
 
 # Bundle install (production gems only – correct for production)
-echo "Installing production gems (Rails 7 included)..."
+echo "Installing production gems..."
 sudo -u ubuntu bash -c 'export PATH="$HOME/.rbenv/shims:$PATH" && bundle install --without development test'
 
 # Docker Compose up (v2 plugin – with -d for detached)
 echo "Starting your weather forecast app (detached mode)..."
 sudo -u ubuntu bash -c 'export PATH="$HOME/.rbenv/shims:$PATH:/usr/bin" && docker compose up --build -d'
 
-PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || echo "localhost")
-echo "=== DEPLOYMENT COMPLETE! App is live at http://$PUBLIC_IP ==="
-echo "Verify: docker compose ps"
-echo "Log: tail -f /var/log/user-data.log"
+echo "=== DEPLOYMENT COMPLETE!
