@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1.6
-FROM ruby:3.2.8-slim
+FROM public.ecr.aws/docker/library/ruby:3.2.8-slim
+
 
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
@@ -22,5 +23,4 @@ RUN bundle exec bootsnap precompile --gemfile app lib
 
 EXPOSE 3000
 
-# THIS LINE CANNOT FAIL — NO bin/rails, NO permissions, NO drama
 CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
