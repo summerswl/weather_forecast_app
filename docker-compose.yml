@@ -12,8 +12,7 @@ services:
     build: .
     command: >
       sh -c "
-        echo 'Installing pg_isready...' &&
-        apk add --no-cache postgresql16-client &&          # ← THIS IS THE ONLY LINE THAT WORKS
+        apk add --no-cache postgresql16-client &&          
         echo 'Waiting for PostgreSQL on db:5432...' &&
         until pg_isready -h db -p 5432 -U super_admin 2>/dev/null; do
           echo 'PostgreSQL not ready yet, sleeping 3s...'
@@ -41,7 +40,7 @@ services:
 
   react:
     image: node:16-alpine
-    user: node                                          # ← THIS FIXES EACCES FOREVER
+    user: "node"                                           
     working_dir: /app
     volumes:
       - .:/app
@@ -53,14 +52,14 @@ services:
       CHOKIDAR_USEPOLLING: "true"
       HOST: 0.0.0.0
       PORT: 3000
-      NPM_CONFIG_CACHE: /tmp/.npm                         # ← forces npm cache to writable location
+      HOME: /tmp                                             
     depends_on:
       - rails
     command: >
       sh -c "
-        apk add --no-cache netcat-openbsd &&
+        mkdir -p /tmp/.npm && chown node:node /tmp/.npm &&   # fix cache permissions once
         until nc -z rails 3000; do echo 'Waiting for Rails...'; sleep 3; done &&
-        npm ci --legacy-peer-deps --cache /tmp/.npm --prefer-offline &&
+        npm ci --legacy-peer-deps --cache /tmp/.npm &&
         npm run start-docker
       "
 
