@@ -41,6 +41,7 @@ services:
 
   react:
     image: node:16-alpine
+    user: node                                          # ← THIS FIXES EACCES FOREVER
     working_dir: /app
     volumes:
       - .:/app
@@ -52,18 +53,14 @@ services:
       CHOKIDAR_USEPOLLING: "true"
       HOST: 0.0.0.0
       PORT: 3000
+      NPM_CONFIG_CACHE: /tmp/.npm                         # ← forces npm cache to writable location
     depends_on:
       - rails
     command: >
       sh -c "
         apk add --no-cache netcat-openbsd &&
-        echo '=== Waiting for Rails on port 3000 ===' &&
-        until nc -z rails 3000; do
-          echo 'Rails not ready yet, retrying in 3s...'
-          sleep 3
-        done &&
-        echo 'Rails is up! Starting React dev server...' &&
-        npm ci --legacy-peer-deps --silent &&
+        until nc -z rails 3000; do echo 'Waiting for Rails...'; sleep 3; done &&
+        npm ci --legacy-peer-deps --cache /tmp/.npm --prefer-offline &&
         npm run start-docker
       "
 
