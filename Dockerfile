@@ -18,7 +18,6 @@ RUN gem install bundler -v "$(tail -n 1 Gemfile.lock | tr -d ' ')" && \
 # Copy code
 COPY . .
 
-# Precompile bootsnap
 RUN bundle exec bootsnap precompile --gemfile app lib
 
 EXPOSE 3000
