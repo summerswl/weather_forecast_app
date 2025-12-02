@@ -22,10 +22,7 @@ phases:
     commands:
       - echo "Building Docker images - $(date)"
 
-      # 1. Build Rails image using your existing Dockerfile + docker-compose
       - docker compose build rails
-
-      # 2. Build production React image (static files only, no dev server)
       - |
         docker build -f - . <<EOF
         FROM node:16-alpine AS builder
