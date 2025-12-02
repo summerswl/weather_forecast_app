@@ -33,6 +33,16 @@ phases:
       - echo "Building with Docker Compose..."
       - docker-compose build
 
+      # DEBUG: Check docker-compose.yml content
+      - echo "=== Docker Compose Configuration ==="
+      - cat docker-compose.yml
+      - echo "=== End of Docker Compose Configuration ==="
+      
+      # DEBUG: Check what services are defined
+      - echo "=== Docker Compose Services ==="
+      - docker-compose config --services
+      - echo "=== End of Services ==="
+
       # DEBUG: List all images to see what was actually created
       - echo "=== All Docker Images After Build ==="
       - docker images
