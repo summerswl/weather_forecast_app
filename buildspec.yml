@@ -13,48 +13,24 @@ phases:
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 
+      # Install Docker Compose
+      - curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      - chmod +x /usr/local/bin/docker-compose
+      - docker-compose --version
+      
       # ECR repository URIs
       - export RAILS_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails
       - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-react
-
-      # Git commit-based tag
-      # - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
-      # - echo "Using tag $TAG"
-
+      
   build:
     commands:
-      - echo "Building Docker images - $(date)"
-
-      # Git commit-based tag (should be available here)
-      - echo "CODEBUILD_RESOLVED_SOURCE_VERSION = '$CODEBUILD_RESOLVED_SOURCE_VERSION'"
-      - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
-      - echo "Using tag = $TAG"
-
-      # 1. Build Rails image using your existing Dockerfile + docker-compose
-      - docker compose build rails
-
-      # 2. Build production React image (static files only, no dev server) - single quoted string
-      - 'docker build -f - -t weather-forecast-react-prod:latest . <<EOF
-          FROM node:16-alpine AS builder
-          WORKDIR /app
-          COPY package*.json ./
-          RUN npm ci --legacy-peer-deps
-          COPY . .
-          RUN npm run build
-
-          FROM node:16-alpine
-          WORKDIR /app
-          RUN npm install -g serve
-          COPY --from=builder /app/static/dist ./static/dist
-          EXPOSE 3000
-          CMD ["serve", "-s", "static/dist", "-l", "3000"]
-          EOF'
-
-      # Tag both images for ECR
-      - docker tag weather_forecast_app-rails:latest $RAILS_REPO:latest
-      - docker tag weather_forecast_app-rails:latest $RAILS_REPO:$TAG
-      - docker tag weather-forecast-react-prod:latest $REACT_REPO:latest
-      - docker tag weather-forecast-react-prod:latest $REACT_REPO:$TAG
+      - echo "Build started on $(date)"
+      - echo "Building with Docker Compose..."
+      - docker-compose build
+      
+      # Tag images for ECR
+      - docker tag your-app_rails:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails:$TAG
+      - docker tag your-app_react:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-react:$TAG
 
   post_build:
     commands:
