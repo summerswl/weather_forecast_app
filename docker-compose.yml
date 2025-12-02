@@ -39,30 +39,31 @@ services:
       - "3001:3000"
 
   react:
-    build: .
-    command: >
-      sh -c "
-        rm -rf /app/node_modules &&
-        apk add --no-cache netcat-openbsd &&
-        until nc -z rails 3000; do echo 'Waiting for Rails...'; sleep 3; done &&
-        npm ci --legacy-peer-deps &&
-        npm run start-docker
-      "
-    image: node:16-alpine
-    user: root
-    working_dir: /app
-    volumes:
-      - .:/app
-    ports:
-      - "3000:3000"
-    environment:
-      PROXY_TARGET: http://rails:3000
-      CHOKIDAR_USEPOLLING: "true"
-      HOST: 0.0.0.0
-      PORT: 3000
-      HOME: /tmp
-    depends_on:
-      - rails
+    build: 
+      context: .
+      command: >
+        sh -c "
+          rm -rf /app/node_modules &&
+          apk add --no-cache netcat-openbsd &&
+          until nc -z rails 3000; do echo 'Waiting for Rails...'; sleep 3; done &&
+          npm ci --legacy-peer-deps &&
+          npm run start-docker
+        "
+      from: node:16-alpine
+      user: root
+      working_dir: /app
+      volumes:
+        - .:/app
+      ports:
+        - "3000:3000"
+      environment:
+        PROXY_TARGET: http://rails:3000
+        CHOKIDAR_USEPOLLING: "true"
+        HOST: 0.0.0.0
+        PORT: 3000
+        HOME: /tmp
+      depends_on:
+        - rails
 
 volumes:
   postgres-db:
