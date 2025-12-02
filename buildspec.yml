@@ -30,10 +30,51 @@ phases:
       - echo "CODEBUILD_RESOLVED_SOURCE_VERSION = '$CODEBUILD_RESOLVED_SOURCE_VERSION'"
       - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
       - echo "Using tag = $TAG"
+      - echo "Building with Docker Compose..."
+      - docker-compose build
+
+      My tag is: [Container] 2025/12/02 19:45:23.271469 Running command echo "Using tag = $TAG" Using tag = 5f3b352 but I'm getting this error:$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails:$TAG exit status 1 [Container] 2025/12/02 19:47:14.071275 Phase complete: BUILD State: FAILED [Container] 2025/12/02 19:47:14.071285 Phase context status code: COMMAND_EXECUTION_ERROR Message: Error while executing command: docker tag your-app_rails:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails:$TAG. Reason: exit status 1
+
+The issue is clear now! The error shows that you're still trying to tag an image called your-app_rails:latest, but that image doesn't exist. The Docker Compose build either:
+
+Failed to create the image, or
+Created an image with a different name
+Let's fix this step by step:
+
+Solution 1: Check what images were actually created
+First, let's see what Docker Compose actually built:
+
+version: 0.2
+
+env:
+  variables:
+    AWS_DEFAULT_REGION: us-east-1
+    AWS_ACCOUNT_ID: 414708969810
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
       
+      # Install Docker Compose
+      - curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      - chmod +x /usr/local/bin/docker-compose
+      - docker-compose --version
+      
+      - export TAG=$(echo ${CODEBUILD_RESOLVED_SOURCE_VERSION:-latest} | cut -c1-7)
+      - echo "Using tag = $TAG"
+
+  build:
+    commands:
       - echo "Build started on $(date)"
       - echo "Building with Docker Compose..."
       - docker-compose build
+      
+      # DEBUG: List all images to see what was actually created
+      - echo "=== All Docker Images After Build ==="
+      - docker images
+      - echo "=== End of Docker Images ==="
       
       # Tag images for ECR
       - docker tag weather-forecast-rails:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails:$TAG
