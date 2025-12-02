@@ -29,7 +29,7 @@ phases:
       # Git commit-based tag (should be available here)
       - echo "CODEBUILD_RESOLVED_SOURCE_VERSION = '$CODEBUILD_RESOLVED_SOURCE_VERSION'"
       - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
-      - echo "Using tag = $TAG"
+      - echo "Tag = $TAG"
       - echo "Building with Docker Compose..."
       - docker-compose build
 
@@ -39,7 +39,7 @@ phases:
       - echo "=== End of Docker Images ==="
       
       # Tag images for ECR
-      - docker tag src-rails-rails:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails:$TAG
+      - docker tag src-rails:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails:$TAG
       - docker tag weather-forecast-react:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-react:$TAG
 
   post_build:
