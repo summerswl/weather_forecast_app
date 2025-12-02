@@ -18,24 +18,9 @@ RUN gem install bundler -v "$(tail -n 1 Gemfile.lock | tr -d ' ')" && \
 # Copy code
 COPY . .
 
+# Precompile bootsnap
 RUN bundle exec bootsnap precompile --gemfile app lib
 
 EXPOSE 3000
 
 CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0"]
-
-# React build
-FROM node:16-alpine AS react-build
-WORKDIR /app
-RUN apk add --no-cache netcat-openbsd
-COPY package*.json ./
-RUN npm ci --legacy-peer-deps
-COPY . .
-RUN npm run build
-RUN npm install -g serve
-EXPOSE 3000
-CMD ["serve", "-s", "build", "-l", "3000"]
-
-# Final stage - choose based on SERVICE_TYPE
-FROM rails-build AS rails
-FROM react-build AS react
