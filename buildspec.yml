@@ -36,8 +36,8 @@ phases:
       - docker-compose build
       
       # Tag images for ECR
-      - docker tag your-app_rails:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails:$TAG
-      - docker tag your-app_react:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-react:$TAG
+      - docker tag weather-forecast-rails:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails:$TAG
+      - docker tag weather-forecast-react:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-react:$TAG
 
   post_build:
     commands:
