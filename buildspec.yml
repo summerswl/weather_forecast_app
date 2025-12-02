@@ -1,6 +1,11 @@
 # buildspec.yml
 version: 0.2
 
+env:
+  variables:
+    AWS_DEFAULT_REGION: us-east-2  # Set your actual region
+    AWS_ACCOUNT_ID: 414708969810   # Set your actual account ID
+
 phases:
   pre_build:
     commands:
