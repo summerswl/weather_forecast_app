@@ -19,6 +19,7 @@ phases:
 
       # Git commit-based tag
       - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+      - echo "Using tag: $TAG"
 
   build:
     commands:
