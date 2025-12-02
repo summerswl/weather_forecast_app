@@ -18,12 +18,17 @@ phases:
       - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-react
 
       # Git commit-based tag
-      - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
-      - echo "Using tag: $TAG"
+      # - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+      # - echo "Using tag $TAG"
 
   build:
     commands:
       - echo "Building Docker images - $(date)"
+
+      # Git commit-based tag (should be available here)
+      - echo "CODEBUILD_RESOLVED_SOURCE_VERSION = '$CODEBUILD_RESOLVED_SOURCE_VERSION'"
+      - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+      - echo "Using tag = $TAG"
 
       # 1. Build Rails image using your existing Dockerfile + docker-compose
       - docker compose build rails
