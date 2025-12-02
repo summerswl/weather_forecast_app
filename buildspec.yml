@@ -30,18 +30,14 @@ phases:
       - echo "CODEBUILD_RESOLVED_SOURCE_VERSION = '$CODEBUILD_RESOLVED_SOURCE_VERSION'"
       - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
       - echo "Tag = $TAG"
-      - echo "Building with Docker Compose..."
-      - docker-compose build
 
-      # DEBUG: Check docker-compose.yml content
-      - echo "=== Docker Compose Configuration ==="
-      - cat docker-compose.yml
-      - echo "=== End of Docker Compose Configuration ==="
+      # Clean up any old images first
+      - echo "Cleaning up old images..."
+      - docker system prune -f
       
-      # DEBUG: Check what services are defined
-      - echo "=== Docker Compose Services ==="
-      - docker-compose config --services
-      - echo "=== End of Services ==="
+      # Force rebuild without cache
+      - echo "Building all services with no cache..."
+      - docker-compose build --no-cache --force-rm
 
       # DEBUG: List all images to see what was actually created
       - echo "=== All Docker Images After Build ==="
