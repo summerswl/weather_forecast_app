@@ -24,6 +24,13 @@ phases:
       
   build:
     commands:
+      - echo "Building Docker images - $(date)"
+
+      # Git commit-based tag (should be available here)
+      - echo "CODEBUILD_RESOLVED_SOURCE_VERSION = '$CODEBUILD_RESOLVED_SOURCE_VERSION'"
+      - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+      - echo "Using tag = $TAG"
+      
       - echo "Build started on $(date)"
       - echo "Building with Docker Compose..."
       - docker-compose build
