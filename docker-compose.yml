@@ -39,6 +39,7 @@ services:
       DATABASE_USERNAME: super_admin
       DATABASE_PASSWORD: SomeSecretPassword
       DATABASE_NAME: weather_forecast_app_production
+      OPENWEATHER_API_KEY: "01827a9e1178bddbc1527b672be87b85"
     ports:
       - "3001:3000"
 
