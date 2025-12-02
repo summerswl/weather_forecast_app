@@ -9,17 +9,23 @@ services:
       - postgres-db:/var/lib/postgresql/data
 
   rails:
-    build: .
+    build:
+      context: .
+      target: rails
     command: >
       sh -c "
         apk add --no-cache postgresql16-client &&          
-        echo 'Waiting for PostgreSQL on db:5432...' &&
+        echo 'Waiting for PostgreSQL' &&
         until pg_isready -h db -p 5432 -U super_admin 2>/dev/null; do
           echo 'PostgreSQL not ready yet, sleeping 3s...'
           sleep 3
         done &&
         echo 'PostgreSQL is ready! Running migrations...' &&
-        bundle exec rails db:prepare RAILS_ENV=production || true &&
+        echo 'PostgreSQL is ready preparing database...' &&
+        bundle exec rails db:prepare RAILS_ENV=production ||
+        bundle exec rails db:create db:migrate RAILS_ENV=production &&
+        
+        echo 'Precompiling assets...' &&
         bundle exec rails assets:precompile RAILS_ENV=production &&
         echo 'Starting Rails on 0.0.0.0:3000...' &&
         exec bundle exec rails server -b 0.0.0.0 -p 3000
