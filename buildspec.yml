@@ -5,12 +5,13 @@ env:
   variables:
     AWS_DEFAULT_REGION: us-east-2  # Set your actual region
     AWS_ACCOUNT_ID: 414708969810   # Set your actual account ID
+    shell: bash  # This forces the use of bash shell
 
 phases:
   pre_build:
     commands:
       - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 414708969810.dkr.ecr.us-east-2.amazonaws.com
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 
       # ECR repository URIs
       - export RAILS_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails
@@ -18,6 +19,7 @@ phases:
 
       # Git commit-based tag
       - export TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}
+      - echo "Tag will be $TAG"
 
   build:
     commands:
