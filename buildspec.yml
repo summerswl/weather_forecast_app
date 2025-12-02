@@ -2,6 +2,7 @@
 version: 0.2
 
 env:
+  shell: bash  # This forces bash instead of sh
   variables:
     AWS_DEFAULT_REGION: us-east-2  # Set your actual region
     AWS_ACCOUNT_ID: 414708969810   # Set your actual account ID
@@ -18,6 +19,7 @@ phases:
 
       # Git commit-based tag
       - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+      - echo "Using tag: $TAG"
 
   build:
     commands:
