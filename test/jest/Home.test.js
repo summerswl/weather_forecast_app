@@ -32,7 +32,7 @@ describe('Home Component', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: /welcome back! enter an address for today’s forecast\?/i,
+        name: /welcome back! enter an address for today’s forecast/i,
       })
     ).toBeInTheDocument();
   });

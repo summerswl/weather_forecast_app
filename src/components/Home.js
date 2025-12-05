@@ -70,7 +70,7 @@ showRegistration = () => {
         <h1>
           {loggedInStatus === 'not logged in'
             ? 'Welcome, please login or create an account to see your forecast'
-            : 'Welcome back! Enter an address for today’s forecast?'}
+            : 'Welcome back! Enter an address for today’s forecast'}
         </h1>
       </div>
     );
