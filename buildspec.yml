@@ -7,8 +7,9 @@ phases:
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 
-      - export RAILS_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails
-      - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-react
+      # Your exact ECR repository names (no dashes in the middle)
+      - export RAILS_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weatherforecast-rails
+      - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weatherforecast-react
 
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - export IMAGE_TAG=${COMMIT_HASH:-latest}
@@ -17,14 +18,14 @@ phases:
     commands:
       - echo "Building images - $(date)"
 
-      # 1. Rails image – uses your existing Dockerfile in the root (unchanged)
+      # 1. Rails image – uses your existing Dockerfile in the root
       - echo "Building Rails image..."
-      - docker build -t weather-forecast-rails:$IMAGE_TAG .
+      - docker build -t weatherforecast-rails:$IMAGE_TAG .
 
-      - docker tag weather-forecast-rails:$IMAGE_TAG $RAILS_REPO:$IMAGE_TAG
-      - docker tag weather-forecast-rails:$IMAGE_TAG $RAILS_REPO:latest
+      - docker tag weatherforecast-rails:$IMAGE_TAG $RAILS_REPO:$IMAGE_TAG
+      - docker tag weatherforecast-rails:$IMAGE_TAG $RAILS_REPO:latest
 
-      # 2. React image – creates a temporary Dockerfile on-the-fly, then builds it
+      # 2. React image – exact same dev server you run on EC2 today
       - echo "Creating temporary Dockerfile for React dev server..."
       - |
         cat > Dockerfile.react <<'EOF'
@@ -50,13 +51,12 @@ phases:
         EOF
 
       - echo "Building React development server image..."
-      - docker build -f Dockerfile.react -t weather-forecast-react:$IMAGE_TAG .
+      - docker build -f Dockerfile.react -t weatherforecast-react:$IMAGE_TAG .
 
-      - docker tag weather-forecast-react:$IMAGE_TAG $REACT_REPO:$IMAGE_TAG
-      - docker tag weather-forecast-react:$IMAGE_TAG $REACT_REPO:latest
+      - docker tag weatherforecast-react:$IMAGE_TAG $REACT_REPO:$IMAGE_TAG
+      - docker tag weatherforecast-react:$IMAGE_TAG $REACT_REPO:latest
 
-      # Clean up the temporary file (optional, harmless if skipped)
-      - rm -f Dockerfile.react
+      - rm -f Dockerfile.react   # clean up
 
   post_build:
     commands:
