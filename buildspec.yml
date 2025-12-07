@@ -1,47 +1,71 @@
 # buildspec.yml
+
 version: 0.2
 
-phases: 
-
+phases:
   pre_build:
     commands:
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 
-      # ECR repository URIs
+      # ECR repositories (keep exactly these names)
       - export RAILS_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails
       - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-react
 
-      # Git commit-based tag
+      # Image tag = short Git commit SHA (or "latest" for manual builds)
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - IMAGE_TAG=${COMMIT_HASH:-latest}
+      - export IMAGE_TAG=${COMMIT_HASH:-latest}
 
   build:
     commands:
       - echo "Building Docker images - $(date)"
 
-      - echo Build started on `date`
-      - echo Building the Docker image...
-      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
-      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      - echo "Building Rails image..."
+      - docker build -t weather-forecast-rails:$IMAGE_TAG .
 
-      # Tag both images for ECR
-      - docker tag weather_forecast_app-rails:latest $RAILS_REPO:latest
-      - docker tag weather_forecast_app-rails:latest $RAILS_REPO:$TAG
-      - docker tag weather-forecast-react-prod:latest $REACT_REPO:latest
-      - docker tag weather-forecast-react-prod:latest $REACT_REPO:$TAG
+      - docker tag weather-forecast-rails:$IMAGE_TAG $RAILS_REPO:$IMAGE_TAG
+      - docker tag weather-forecast-rails:$IMAGE_TAG $RAILS_REPO:latest
+
+      - echo "Building React production image (multi-stage)..."
+      - >
+        docker build -t weather-forecast-react:$IMAGE_TAG - <<EOF
+        # ---- Build stage ----
+        FROM node:20-alpine AS builder
+        WORKDIR /app
+        COPY package*.json ./
+        RUN npm ci --legacy-peer-deps
+        COPY . .
+        RUN npm run build
+
+        # ---- Final nginx stage ----
+        FROM nginx:alpine
+        COPY --from=builder /app/build /usr/share/nginx/html
+        # Optional: custom nginx config if you need proxy/rewrites
+        # COPY nginx.conf /etc/nginx/conf.d/default.conf
+        EXPOSE 80
+        CMD ["nginx", "-g", "daemon off;"]
+        EOF
+
+      - docker tag weather-forecast-react:$IMAGE_TAG $REACT_REPO:$IMAGE_TAG
+      - docker tag weather-forecast-react:$IMAGE_TAG $REACT_REPO:latest
 
   post_build:
     commands:
-      - echo "Pushing images to ECR..."
-      - docker push $RAILS_REPO:latest && docker push $RAILS_REPO:$TAG
-      - docker push $REACT_REPO:latest && docker push $REACT_REPO:$TAG
+      - echo "Pushing both images to ECR..."
+      - docker push $RAILS_REPO:latest
+      - docker push $RAILS_REPO:$IMAGE_TAG
+      - docker push $REACT_REPO:latest
+      - docker push $REACT_REPO:$IMAGE_TAG
 
-      # imagedefinitions.json for CodeDeploy (if you ever switch to ECS)
-      - printf '[{"name":"rails","imageUri":"%s"},{"name":"react","imageUri":"%s"}]' \
-          $RAILS_REPO:$TAG $REACT_REPO:$TAG > imagedefinitions.json
+      # imagedefinitions.json for ECS / CodeDeploy / App Runner
+      - >-
+        printf '[
+          {"name":"weather-forecast-rails","imageUri":"%s"},
+          {"name":"weather-forecast-react","imageUri":"%s"}
+        ]' \
+        $RAILS_REPO:$IMAGE_TAG $REACT_REPO:$IMAGE_TAG > imagedefinitions.json
 
-      - echo "Build completed - $(date)"
+      - echo "Build completed on $(date)"
 
 artifacts:
   files:
