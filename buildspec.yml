@@ -13,30 +13,17 @@ phases:
       - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-react
 
       # Git commit-based tag
-      - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=${COMMIT_HASH:-latest}
 
   build:
     commands:
       - echo "Building Docker images - $(date)"
 
-      - docker compose build rails
-      - |
-        docker build -f - . <<EOF
-        FROM node:16-alpine AS builder
-        WORKDIR /app
-        COPY package*.json ./
-        RUN npm ci --legacy-peer-deps
-        COPY . .
-        RUN npm run build
-
-        FROM node:16-alpine
-        WORKDIR /app
-        RUN npm install -g serve
-        COPY --from=builder /app/static/dist ./static/dist
-        EXPOSE 3000
-        CMD ["serve", "-s", "static/dist", "-l", "3000"]
-        EOF
-        -t weather-forecast-react-prod:latest
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+      - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
 
       # Tag both images for ECR
       - docker tag weather_forecast_app-rails:latest $RAILS_REPO:latest
