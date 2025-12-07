@@ -1,5 +1,4 @@
 # buildspec.yml
-
 version: 0.2
 
 phases:
@@ -18,27 +17,26 @@ phases:
     commands:
       - echo "Building images - $(date)"
 
-      - echo "Building Rails image from root Dockerfile..."
+      # 1. Rails image – uses your existing Dockerfile in the root (unchanged)
+      - echo "Building Rails image..."
       - docker build -t weather-forecast-rails:$IMAGE_TAG .
 
       - docker tag weather-forecast-rails:$IMAGE_TAG $RAILS_REPO:$IMAGE_TAG
       - docker tag weather-forecast-rails:$IMAGE_TAG $RAILS_REPO:latest
 
-      - echo "Building React development server image (same as local/EC2)..."
-      - >
-        docker build -t weather-forecast-react:$IMAGE_TAG - <<'EOF'
+      # 2. React image – creates a temporary Dockerfile on-the-fly, then builds it
+      - echo "Creating temporary Dockerfile for React dev server..."
+      - |
+        cat > Dockerfile.react <<'EOF'
         FROM node:16-alpine
 
         WORKDIR /app
 
-        # Install netcat for the wait script (same as your compose file)
         RUN apk add --no-cache netcat-openbsd
 
-        # Copy package files and install dependencies
         COPY package*.json ./
         RUN npm ci --legacy-peer-deps
 
-        # Copy the rest of the code
         COPY . .
 
         ENV HOST=0.0.0.0 \
@@ -51,23 +49,27 @@ phases:
         CMD sh -c "until nc -z rails 3000; do echo 'Waiting for Rails...'; sleep 3; done && npm run start-docker"
         EOF
 
+      - echo "Building React development server image..."
+      - docker build -f Dockerfile.react -t weather-forecast-react:$IMAGE_TAG .
+
       - docker tag weather-forecast-react:$IMAGE_TAG $REACT_REPO:$IMAGE_TAG
       - docker tag weather-forecast-react:$IMAGE_TAG $REACT_REPO:latest
+
+      # Clean up the temporary file (optional, harmless if skipped)
+      - rm -f Dockerfile.react
 
   post_build:
     commands:
       - echo "Pushing images to ECR..."
-      - docker push $RAILS_REPO:latest && docker push $RAILS_REPO:$IMAGE_TAG
-      - docker push $REACT_REPO:latest && docker push $REACT_REPO:$IMAGE_TAG
+      - docker push $RAILS_REPO:latest
+      - docker push $RAILS_REPO:$IMAGE_TAG
+      - docker push $REACT_REPO:latest
+      - docker push $REACT_REPO:$IMAGE_TAG
 
-      - >-
-        printf '[
-          {"name":"rails","imageUri":"%s"},
-          {"name":"react","imageUri":"%s"}
-        ]' \
-        $RAILS_REPO:$IMAGE_TAG $REACT_REPO:$IMAGE_TAG > imagedefinitions.json
+      - printf '[{"name":"rails","imageUri":"%s"},{"name":"react","imageUri":"%s"}]' \
+          $RAILS_REPO:$IMAGE_TAG $REACT_REPO:$IMAGE_TAG > imagedefinitions.json
 
-      - echo "Build completed on $(date)"
+      - echo "Build completed - $(date)"
 
 artifacts:
   files:
