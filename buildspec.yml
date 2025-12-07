@@ -8,42 +8,47 @@ phases:
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 
-      # ECR repositories (keep exactly these names)
       - export RAILS_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-rails
       - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-react
 
-      # Image tag = short Git commit SHA (or "latest" for manual builds)
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - export IMAGE_TAG=${COMMIT_HASH:-latest}
 
   build:
     commands:
-      - echo "Building Docker images - $(date)"
+      - echo "Building images - $(date)"
 
-      - echo "Building Rails image..."
+      - echo "Building Rails image from root Dockerfile..."
       - docker build -t weather-forecast-rails:$IMAGE_TAG .
 
       - docker tag weather-forecast-rails:$IMAGE_TAG $RAILS_REPO:$IMAGE_TAG
       - docker tag weather-forecast-rails:$IMAGE_TAG $RAILS_REPO:latest
 
-      - echo "Building React production image (multi-stage)..."
+      - echo "Building React development server image (same as local/EC2)..."
       - >
-        docker build -t weather-forecast-react:$IMAGE_TAG - <<EOF
-        # ---- Build stage ----
-        FROM node:20-alpine AS builder
+        docker build -t weather-forecast-react:$IMAGE_TAG - <<'EOF'
+        FROM node:16-alpine
+
         WORKDIR /app
+
+        # Install netcat for the wait script (same as your compose file)
+        RUN apk add --no-cache netcat-openbsd
+
+        # Copy package files and install dependencies
         COPY package*.json ./
         RUN npm ci --legacy-peer-deps
-        COPY . .
-        RUN npm run build
 
-        # ---- Final nginx stage ----
-        FROM nginx:alpine
-        COPY --from=builder /app/build /usr/share/nginx/html
-        # Optional: custom nginx config if you need proxy/rewrites
-        # COPY nginx.conf /etc/nginx/conf.d/default.conf
-        EXPOSE 80
-        CMD ["nginx", "-g", "daemon off;"]
+        # Copy the rest of the code
+        COPY . .
+
+        ENV HOST=0.0.0.0 \
+            PORT=3000 \
+            CHOKIDAR_USEPOLLING=true \
+            HOME=/tmp
+
+        EXPOSE 3000
+
+        CMD sh -c "until nc -z rails 3000; do echo 'Waiting for Rails...'; sleep 3; done && npm run start-docker"
         EOF
 
       - docker tag weather-forecast-react:$IMAGE_TAG $REACT_REPO:$IMAGE_TAG
@@ -51,17 +56,14 @@ phases:
 
   post_build:
     commands:
-      - echo "Pushing both images to ECR..."
-      - docker push $RAILS_REPO:latest
-      - docker push $RAILS_REPO:$IMAGE_TAG
-      - docker push $REACT_REPO:latest
-      - docker push $REACT_REPO:$IMAGE_TAG
+      - echo "Pushing images to ECR..."
+      - docker push $RAILS_REPO:latest && docker push $RAILS_REPO:$IMAGE_TAG
+      - docker push $REACT_REPO:latest && docker push $REACT_REPO:$IMAGE_TAG
 
-      # imagedefinitions.json for ECS / CodeDeploy / App Runner
       - >-
         printf '[
-          {"name":"weather-forecast-rails","imageUri":"%s"},
-          {"name":"weather-forecast-react","imageUri":"%s"}
+          {"name":"rails","imageUri":"%s"},
+          {"name":"react","imageUri":"%s"}
         ]' \
         $RAILS_REPO:$IMAGE_TAG $REACT_REPO:$IMAGE_TAG > imagedefinitions.json
 
