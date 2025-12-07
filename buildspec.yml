@@ -1,10 +1,7 @@
 # buildspec.yml
 version: 0.2
 
-phases:
-  install:
-    runtime-versions:
-      docker: 20
+phases: 
 
   pre_build:
     commands:
