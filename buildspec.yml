@@ -13,7 +13,7 @@ phases:
       - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weather-forecast-react
 
       # Git commit-based tag
-      - export TAG=${CODEBUILD_RESOLVED_SOURCE_VERSION:0:7}
+      - export TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
 
   build:
     commands:
