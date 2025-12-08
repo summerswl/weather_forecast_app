@@ -52,7 +52,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      PROXY_TARGET: http://localhost:3000
+      PROXY_TARGET: http://rails:3000
       CHOKIDAR_USEPOLLING: "true"
       HOST: 0.0.0.0
       PORT: 3000
