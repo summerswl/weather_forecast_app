@@ -11,7 +11,7 @@ phases:
       - export RAILS_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weatherforecast-rails
       - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weatherforecast-react
 
-      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - COMMIT_HASH=$(CODEBUILD_RESOLVED_SOURCE_VERSION:-latest)
       - export IMAGE_TAG=${COMMIT_HASH:-latest}
 
   build:
