@@ -8,11 +8,9 @@ phases:
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 
       # Your exact ECR repository names (no dashes in the middle)
-      - export RAILS_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weatherforecast-rails
-      - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weatherforecast-react
-
-      - COMMIT_HASH=$(CODEBUILD_RESOLVED_SOURCE_VERSION:-latest)
-      - export IMAGE_TAG=${COMMIT_HASH:-latest}
+      - export RAILS_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weatherforecast-rails:latest
+      - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weatherforecast-react:latest
+      
 
   build:
     commands:
@@ -20,10 +18,10 @@ phases:
 
       # 1. Rails image – uses your existing Dockerfile in the root
       - echo "Building Rails image..."
-      - docker build -t weatherforecast-rails:$IMAGE_TAG .
+      - docker build -t weatherforecast-rails:latest .
 
-      - docker tag weatherforecast-rails:$IMAGE_TAG $RAILS_REPO:$IMAGE_TAG
-      - docker tag weatherforecast-rails:$IMAGE_TAG $RAILS_REPO:latest
+      - docker tag weatherforecast-rails:latest $RAILS_REPO:latest
+      - docker tag weatherforecast-rails:latest $RAILS_REPO:latest
 
       # 2. React image – exact same dev server you run on EC2 today
       - echo "Creating temporary Dockerfile for React dev server..."
@@ -51,10 +49,10 @@ phases:
         EOF
 
       - echo "Building React development server image..."
-      - docker build -f Dockerfile.react -t weatherforecast-react:$IMAGE_TAG .
+      - docker build -f Dockerfile.react -t weatherforecast-react:latest .
 
-      - docker tag weatherforecast-react:$IMAGE_TAG $REACT_REPO:$IMAGE_TAG
-      - docker tag weatherforecast-react:$IMAGE_TAG $REACT_REPO:latest
+      - docker tag weatherforecast-react:latest $REACT_REPO:latest
+      - docker tag weatherforecast-react:latest $REACT_REPO:latest
 
       - rm -f Dockerfile.react   # clean up
 
@@ -62,11 +60,9 @@ phases:
     commands:
       - echo "Pushing images to ECR..."
       - docker push $RAILS_REPO:latest
-      - docker push $RAILS_REPO:$IMAGE_TAG
       - docker push $REACT_REPO:latest
-      - docker push $REACT_REPO:$IMAGE_TAG
 
-      - printf '[{"name":"rails","imageUri":"%s"},{"name":"react","imageUri":"%s"}]' $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$RAILS_REPO:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$REACT_REPO:$IMAGE_TAG > imagedefinitions.json
+      - printf '[{"name":"rails","imageUri":"%s"},{"name":"react","imageUri":"%s"}]' $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$RAILS_REPO:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$REACT_REPO:latest > imagedefinitions.json
       - cat imagedefinitions.json
 
 
