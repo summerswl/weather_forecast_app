@@ -47,7 +47,7 @@ phases:
 
         EXPOSE 3000
 
-        CMD sh -c "until nc -z rails 3000; do echo 'Waiting for Rails...'; sleep 3; done && npm run start-docker"
+        CMD sh -c "until nc -z rails 3001; do echo 'Waiting for Rails...'; sleep 3; done && npm run start-docker"
         EOF
 
       - echo "Building React development server image..."
@@ -66,8 +66,7 @@ phases:
       - docker push $REACT_REPO:latest
       - docker push $REACT_REPO:$IMAGE_TAG
 
-      - printf '[{"name":"rails","imageUri":"%s"},{"name":"react","imageUri":"%s"}]' \
-          $RAILS_REPO:$IMAGE_TAG $REACT_REPO:$IMAGE_TAG > imagedefinitions.json
+      - printf '[{"name":"weatherforecast-app-task","imageUri":"%s"}]' $RAILS_REPO:$IMAGE_TAG > imagedefinitions.json
 
       - echo "Build completed - $(date)"
 
