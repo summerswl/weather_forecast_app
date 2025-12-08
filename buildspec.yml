@@ -7,21 +7,14 @@ phases:
       - echo "Logging in to Amazon ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 
-      # Your exact ECR repository names (no dashes in the middle)
-      - export RAILS_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weatherforecast-rails:latest
-      - export REACT_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/weatherforecast-react:latest
-      
-
   build:
     commands:
       - echo "Building images - $(date)"
 
       # 1. Rails image – uses your existing Dockerfile in the root
       - echo "Building Rails image..."
-      - docker build -t weatherforecast-rails:latest .
-
-      - docker tag weatherforecast-rails:latest $RAILS_REPO:latest
-      - docker tag weatherforecast-rails:latest $RAILS_REPO:latest
+      - docker build -t weatherforecast-rails:latest ./rails_backend
+      - docker tag weatherforecast-rails:latest 414708969810.dkr.ecr.us-east-2.amazonaws.com/weatherforecast-rails:latest
 
       # 2. React image – exact same dev server you run on EC2 today
       - echo "Creating temporary Dockerfile for React dev server..."
@@ -49,23 +42,19 @@ phases:
         EOF
 
       - echo "Building React development server image..."
-      - docker build -f Dockerfile.react -t weatherforecast-react:latest .
-
-      - docker tag weatherforecast-react:latest $REACT_REPO:latest
-      - docker tag weatherforecast-react:latest $REACT_REPO:latest
+      - docker build -t weatherforecast-react:latest ./react_frontend
+      - docker tag weatherforecast-react:latest 414708969810.dkr.ecr.us-east-2.amazonaws.com/weatherforecast-react:latest
 
       - rm -f Dockerfile.react   # clean up
 
   post_build:
     commands:
       - echo "Pushing images to ECR..."
-      - docker push $RAILS_REPO:latest
-      - docker push $REACT_REPO:latest
+      - docker push 414708969810.dkr.ecr.us-east-2.amazonaws.com/weatherforecast-rails:latest
+      - docker push 414708969810.dkr.ecr.us-east-2.amazonaws.com/weatherforecast-react:latest
 
-      - printf '[{"name":"rails","imageUri":"%s"},{"name":"react","imageUri":"%s"}]' $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$RAILS_REPO:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$REACT_REPO:latest > imagedefinitions.json
+      - printf '[{"name":"rails","imageUri":"414708969810.dkr.ecr.us-east-2.amazonaws.com/weatherforecast-rails:latest"},{"name":"react","imageUri":"414708969810.dkr.ecr.us-east-2.amazonaws.com/weatherforecast-react:latest"}]' > imagedefinitions.json
       - cat imagedefinitions.json
-
-
       - echo "Build completed - $(date)"
 
 artifacts:
