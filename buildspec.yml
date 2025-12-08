@@ -66,8 +66,8 @@ phases:
       - docker push $REACT_REPO:latest
       - docker push $REACT_REPO:$IMAGE_TAG
 
-      - printf '[{"name":"weatherforecast-app-task","imageUri":"%s"}]' $RAILS_REPO:$IMAGE_TAG > imagedefinitions.json
-
+      - printf '[{"name":"weatherforecast-rails","imageUri":"%s"},{"name":"weatherforecast-react","imageUri":"%s"}]' $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$RAILS_IMAGE_REPO_NAME:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$REACT_IMAGE_REPO_NAME:$IMAGE_TAG > imagedefinitions.json
+      - cat imagedefinitions.json
       - echo "Build completed - $(date)"
 
 artifacts:
