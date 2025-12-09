@@ -2,21 +2,31 @@
 default: &default
   adapter: postgresql
   encoding: unicode
-  host: <%= ENV.fetch('DATABASE_HOST') { 'localhost' } %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  # These will be used in development / docker-compose when no DATABASE_URL is set
+  host: <%= ENV.fetch("DATABASE_HOST") { "localhost" } %>
   port: 5432
-  username: <%= ENV.fetch('DATABASE_USERNAME') { 'super_admin' } %>
-  password: <%= ENV.fetch('DATABASE_PASSWORD') { 'SomeSecretPassword' } %>
-  database: <%= ENV.fetch('DATABASE_NAME') { 'weather_forecast_app' } %>
-  pool: <%= ENV.fetch('RAILS_MAX_THREADS') { 5 } %>
+  username: <%= ENV.fetch("DATABASE_USERNAME") { "super_admin" } %>
+  password: <%= ENV.fetch("DATABASE_PASSWORD") { "SomeSecretPassword" } %>
+  database: <%= ENV.fetch("DATABASE_NAME") { "weather_forecast_app" } %>
 
 development:
   <<: *default
-  database: <%= ENV.fetch('DATABASE_NAME') { 'weather_forecast_app' } %>
+  database: <%= ENV.fetch("DATABASE_NAME") { "weather_forecast_app_development" } %>
 
 test:
   <<: *default
   database: weather_forecast_app_test
 
+# Production: prefer DATABASE_URL (RDS standard) but fall back to individual env vars
 production:
   <<: *default
-  url: <%= ENV['DATABASE_URL'] %>
+  # If Heroku/RDS gives you a full DATABASE_URL, use it (highest priority)
+  url: <%= ENV["DATABASE_URL"] %>
+
+  # Otherwise fall back to the individual variables you already set in the ECS task
+  host: <%= ENV["DATABASE_HOST"] %>
+  username: <%= ENV["DATABASE_USERNAME"] %>
+  password: <%= ENV["DATABASE_PASSWORD"] %>
+  database: <%= ENV["DATABASE_NAME"] %>
+  port:port: 5432
