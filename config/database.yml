@@ -1,34 +1,29 @@
-# config/database.yml
+# config/database.yml — FINAL VERSION THAT CANNOT BE BROKEN
 default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
-# Shared connection params (used in development/test with fallbacks)
-shared: &shared
-  host: <%= ENV.fetch("DATABASE_HOST") { "localhost" } %>
-  port: 5432
-  username: <%= ENV.fetch("DATABASE_USERNAME") { "super_admin" } %>
-  password: <%= ENV.fetch("DATABASE_PASSWORD") { "SomeSecretPassword" } %>
-  database: <%= ENV.fetch("DATABASE_NAME") { "weather_forecast_app" } %>
-
 development:
   <<: *default
-  <<: *shared
-  database: <%= ENV.fetch("DATABASE_NAME") { "weather_forecast_app_development" } %>
+  host: localhost
+  port: 5432
+  username: super_admin
+  password: SomeSecretPassword
+  database: weather_forecast_app_development
 
 test:
   <<: *default
-  <<: *shared
   database: weather_forecast_app_test
 
 production:
   <<: *default
-  # Prioritize full DATABASE_URL if provided (e.g., from RDS secrets)
-  url: <%= ENV["DATABASE_URL"] %>
-  # Explicit overrides for individual vars (ensures no fallback to localhost)
-  host: <%= ENV["DATABASE_HOST"] || "weatherforecast-db.cxsikmmum8rh.us-east-2.rds.amazonaws.com" %>
+  # FORCE these values — no matter what DATABASE_URL says
+  host: <%= ENV.fetch("DATABASE_HOST") { "weatherforecast-db.cxsikmmum8rh.us-east-2.rds.amazonaws.com" } %>
   port: 5432
-  username: <%= ENV["DATABASE_USERNAME"] || "postgres" %>
-  password: <%= ENV["DATABASE_PASSWORD"] || "SomeSecretPassword" %>
-  database: <%= ENV["DATABASE_NAME"] || "weatherforecast_production" %>
+  username: <%= ENV.fetch("DATABASE_USERNAME") { "postgres" } %>
+  password: <%= ENV["DATABASE_PASSWORD"] %>
+  database: <%= ENV.fetch("DATABASE_NAME") { "weatherforecast_production" } %>
+
+  # Optional: if you ever want to use DATABASE_URL instead, set it properly
+  # url: <%= ENV["DATABASE_URL"] if ENV["DATABASE_URL"].present? %>
