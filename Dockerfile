@@ -21,6 +21,6 @@ COPY . .
 # Precompile bootsnap
 RUN bundle exec bootsnap precompile --gemfile app lib
 
-EXPOSE 3000
+EXPOSE 3001
 
-CMD bundle exec rails server --binding 0.0.0.0 --port ${PORT:-3000}
+CMD bundle exec rails server --binding 0.0.0.0 --port ${PORT:-3001}
