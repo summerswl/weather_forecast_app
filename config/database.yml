@@ -3,7 +3,9 @@ default: &default
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  # These will be used in development / docker-compose when no DATABASE_URL is set
+
+# Shared connection params (used in development/test with fallbacks)
+shared: &shared
   host: <%= ENV.fetch("DATABASE_HOST") { "localhost" } %>
   port: 5432
   username: <%= ENV.fetch("DATABASE_USERNAME") { "super_admin" } %>
@@ -12,21 +14,21 @@ default: &default
 
 development:
   <<: *default
+  <<: *shared
   database: <%= ENV.fetch("DATABASE_NAME") { "weather_forecast_app_development" } %>
 
 test:
   <<: *default
+  <<: *shared
   database: weather_forecast_app_test
 
-# Production: prefer DATABASE_URL (RDS standard) but fall back to individual env vars
 production:
   <<: *default
-  # If Heroku/RDS gives you a full DATABASE_URL, use it (highest priority)
+  # Prioritize full DATABASE_URL if provided (e.g., from RDS secrets)
   url: <%= ENV["DATABASE_URL"] %>
-
-  # Otherwise fall back to the individual variables you already set in the ECS task
-  host: <%= ENV["DATABASE_HOST"] %>
-  username: <%= ENV["DATABASE_USERNAME"] %>
-  password: <%= ENV["DATABASE_PASSWORD"] %>
-  database: <%= ENV["DATABASE_NAME"] %>
-  port:port: 5432
+  # Explicit overrides for individual vars (ensures no fallback to localhost)
+  host: <%= ENV["DATABASE_HOST"] || "weatherforecast-db.cxsikmmum8rh.us-east-2.rds.amazonaws.com" %>
+  port: 5432
+  username: <%= ENV["DATABASE_USERNAME"] || "postgres" %>
+  password: <%= ENV["DATABASE_PASSWORD"] || "SomeSecretPassword" %>
+  database: <%= ENV["DATABASE_NAME"] || "weatherforecast_production" %>
