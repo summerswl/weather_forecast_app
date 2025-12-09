@@ -1,3 +1,5 @@
+# FORCE REBUILD — updated database.yml on 2025-12-09
+
 # syntax=docker/dockerfile:1.6
 FROM public.ecr.aws/docker/library/ruby:3.2.8-slim
 
