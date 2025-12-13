@@ -7,7 +7,11 @@ Rails.application.configure do
   # it changes. This slows down response time but is perfect for development
   # since you don't have to restart the web server when you make code changes.
   config.cache_classes = false
-
+  config.hosts << "wyattsweather4castapp.com"
+  config.hosts << "www.wyattsweather4castapp.com"
+  config.hosts << /.*\.elb\.amazonaws\.com$/   # Allows ALB health checks
+  config.hosts << "localhost"                  # Optional:nodoc:
+  config.hosts << "127.0.0.1"                   #:nodoc:
   config.hosts << "rails:3001"
 
   config.log_level = :debug
