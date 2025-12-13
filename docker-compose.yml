@@ -12,16 +12,16 @@ services:
     build: .
     command: >
       sh -c "
-        apk add --no-cache postgresql16-client &&          
-        echo 'Waiting for PostgreSQL' &&
-        until pg_isready -h db -p 5432 -U super_admin 2>/dev/null; do
-          echo 'PostgreSQL not ready yet, sleeping 3s...'
-          sleep 3
-        done &&
-        echo 'PostgreSQL is ready! Running migrations...' &&
-        echo 'PostgreSQL is ready preparing database...' &&
-        bundle exec rails db:prepare RAILS_ENV=production ||
-        bundle exec rails db:create db:migrate RAILS_ENV=production &&
+        # apk add --no-cache postgresql16-client &&          
+        # echo 'Waiting for PostgreSQL' &&
+        # until pg_isready -h db -p 5432 -U super_admin 2>/dev/null; do
+        #   echo 'PostgreSQL not ready yet, sleeping 3s...'
+        #   sleep 3
+        # done &&
+        # echo 'PostgreSQL is ready! Running migrations...' &&
+        # echo 'PostgreSQL is ready preparing database...' &&
+        # bundle exec rails db:prepare RAILS_ENV=production ||
+        # bundle exec rails db:create db:migrate RAILS_ENV=production &&
         
         echo 'Precompiling assets...' &&
         bundle exec rails assets:precompile RAILS_ENV=production &&

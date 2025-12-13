@@ -14,11 +14,6 @@ module RailsReactAuth
       g.test_framework :rspec
     end
 
-    # Temporarily bypass database for deployment testing
-    config.active_record.database_selector = nil if Rails.env.production?
-    config.active_record.database_resolver = nil if Rails.env.production?
-
-
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
