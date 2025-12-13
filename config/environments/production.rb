@@ -7,6 +7,7 @@ Rails.application.configure do
   config.hosts << /.*\.elb\.amazonaws\.com$/   # Allows ALB health checks
   config.hosts << "localhost"                  # Optional:nodoc:
   config.hosts << "127.0.0.1"                   #:nodoc:
+  config.hosts << "rails:3001"
 
   # Code is not reloaded between requests.
   config.cache_classes = true
