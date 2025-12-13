@@ -9,11 +9,7 @@ Rails.application.configure do
   config.hosts << "127.0.0.1"                   #:nodoc:
   config.hosts << "rails:3001"
 
-  # Temporarily disable database connections
-  config.active_record.establish_connection = false
-
-
-  # Code is not reloaded between requests.
+    # Code is not reloaded between requests.
   config.cache_classes = true
 
   # Eager load code on boot. This eager loads most of Rails and
