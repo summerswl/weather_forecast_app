@@ -27,4 +27,4 @@ production:
   sslmode: require
 
   # Optional: if you ever want to use DATABASE_URL instead, set it properly
-  url: <%= ENV["DATABASE_URL"] if ENV["DATABASE_URL"].present? %>
+  # url: <%= ENV["DATABASE_URL"] if ENV["DATABASE_URL"].present? %>
