@@ -24,6 +24,7 @@ production:
   username: <%= ENV.fetch("DATABASE_USERNAME") { "postgres" } %>
   password: <%= ENV["DATABASE_PASSWORD"] %>
   database: <%= ENV.fetch("DATABASE_NAME") { "weatherforecast_production" } %>
+  sslmode: require
 
   # Optional: if you ever want to use DATABASE_URL instead, set it properly
   url: <%= ENV["DATABASE_URL"] if ENV["DATABASE_URL"].present? %>
